@@ -1,0 +1,6 @@
+activity_log.txt
+consumption_log.json
+accessToken.txt
+old/**
+logs/**
+__pycache__/**
