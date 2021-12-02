@@ -9,9 +9,8 @@ import sys
 map = {0:"OFF", 1:"ON"}
 
 # log file
-logloc = "/home/pi/CurbAPI/activity_log.txt"
+logloc = os.environ['CURB_LOCAL_LOG_LOC']
 now = time.strftime("%H:%M:%S", time.localtime())
-log = open(logloc, "a")
 
 # get command line arg (ON or OFF)
 try:
@@ -28,7 +27,6 @@ else:
     flip = (arg1=="ON") * 1
 
 # Assign GPIO pins for each water heater
-# (We are using 2 and 4 for voltage)
 WH_north = 11
 WH_south = 13
 
@@ -41,10 +39,8 @@ gpio.setup(WH_north,gpio.OUT)
 gpio.setup(WH_south,gpio.OUT)
 
 # flip relay to off or on depending on command line arg supplied to script on crontab
-WHN_status = [None for x in range(2)]
-WHS_status = [None for x in range(2)]
-WHN_status[0] = gpio.input(WH_north)
-WHS_status[0] = gpio.input(WH_south)
+WHN_status = [gpio.input(WH_north)]
+WHS_status = [gpio.input(WH_south)]
 
 # When turning OFF, turn both off. When turning on, turn on only North to avoid both running for 1 minute
 if flip==1:
@@ -55,9 +51,7 @@ elif flip==0:
   gpio.output(WH_south,0)
 
 # log action
-WHN_status[1] = gpio.input(WH_north)
-WHS_status[1] = gpio.input(WH_south)
-
-log.write(now + ": flipRelayWH changed status of water heaters. North: " + map[WHN_status[0]] + "->" + map[WHN_status[1]] + ", South: " + map[WHS_status[0]] + "->" + map[WHS_status[1]] + ".\n")
-
-log.close()
+WHN_status.append(gpio.input(WH_north))
+WHS_status.append(gpio.input(WH_south))
+message = str("flipRelayWH changed status of water heaters. North: " + map[WHN_status[0]] + "->" + map[WHN_status[1]] + ", South: " + map[WHS_status[0]] + "->" + map[WHS_status[1]])
+logfunc(time=now, logloc=logloc, line=message)

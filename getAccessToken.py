@@ -6,12 +6,7 @@ import os.path
 import requests
 import time
 import RPi.GPIO as gpio
-from io import StringIO
 from local_functions import logfunc
-
-# log file
-logloc = os.environ['CURB_LOCAL_LOG_LOC']
-log = open(logloc, "a")
 
 # Access token request parameters
 ATurl = os.environ['CURB_TOKEN_URL']
@@ -30,14 +25,25 @@ key = requests.post(ATurl, json=payload)
 jkey = json.loads(key.text)
 AT = jkey["access_token"]
 
-# write to file for re-use (expires after 24 hours)
-outloc = os.environ[CURB_ACCESS_TOKEN_LOC]
-outfile_exists = os.path.exists(outloc)
-if outfile_exists:
-  os.remove(outloc)
-outfile = open(outloc, "w")
-outfile.write(AT)
-outfile.close()
-
+# log file
 now = time.strftime("%H:%M:%S", time.localtime())
-logfunc(time=now, logloc=logloc, line="getAccessToken refreshed Curb API access token.")
+logloc = os.environ['CURB_LOCAL_LOG_LOC']
+
+# write AT to file for re-use (expires after 24 hours)
+outloc = os.environ['CURB_ACCESS_TOKEN_LOC']
+try:
+  os.remove(outloc)
+except FileNotFoundError:
+  pass
+except:
+  logfunc(time=now, logloc=logloc, line=str(now + ": ERROR: Problem with removal of previous access token file. Trying to continue..."))
+
+try:
+  outfile = open(outloc, "w")
+  outfile.write(AT)
+  outfile.close()
+except:
+  logfunc(time=now, logloc=logloc, line=str(now + ": ERROR: Could not replace access token."))
+  raise SystemExit(str(now + ": ERROR: Could not replace access token."))
+else:
+  logfunc(time=now, logloc=logloc, line="getAccessToken refreshed Curb API access token.")

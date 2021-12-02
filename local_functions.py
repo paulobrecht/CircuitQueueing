@@ -1,7 +1,10 @@
 # log function
-def logfunc(time, logloc, line):
+def logfunc(logloc, line, time=""):
   log = open(logloc, "a")
-  log.write(time + ": " + line + "\n")
+  if time == "":
+    log.write(line + "\n")
+  else:
+    log.write(time + ": " + line + "\n")
   log.close()
 
 # Curb query function
@@ -15,7 +18,7 @@ def curbQuery(locationID, apiURL, AT):
   # get latest usage data using daily token
   Lurl = apiURL + locationID
   bearer_string = 'Bearer ' + AT
-  headers = {'authorization': bearer_string, 'Keep-Alive': 'timeout=3, max=3'}
+  headers = {'authorization': bearer_string, 'Keep-Alive': 'timeout=110, max=10'}
   latest = requests.get(Lurl, headers=headers)
   latest.close()
 
@@ -23,8 +26,8 @@ def curbQuery(locationID, apiURL, AT):
   latest_json = json.loads(latest.text)
   try:
     circuits = latest_json["circuits"]
-  except:
-    outval = ["ERROR", latest.text]
+  except BaseException as err:
+    outval = ["ERROR", str(err + " ---  " + type(err) + " --- " + latest.text)]
   else:
     length = len(circuits)
     for i in range(length):
