@@ -15,8 +15,9 @@ def curbQuery(locationID, apiURL, AT):
   # get latest usage data using daily token
   Lurl = apiURL + locationID
   bearer_string = 'Bearer ' + AT
-  headers = {'authorization': bearer_string}
-  latest = requests.get(Lurl, headers=headers, timeout=(6.1, 30))
+  headers = {'authorization': bearer_string, 'Keep-Alive': 'timeout=3, max=3'}
+  latest = requests.get(Lurl, headers=headers)
+  latest.close()
 
   # parse latest usage data ("log" is defined in calling script)
   latest_json = json.loads(latest.text)

@@ -14,7 +14,7 @@ logloc = os.environ['CURB_LOCAL_LOG_LOC']
 log = open(logloc, "a")
 
 # Access token request parameters
-ATurl = "https://energycurb.auth0.com/oauth/token"
+ATurl = os.environ['CURB_TOKEN_URL']
 payload = {"grant_type": "password",
            "audience": os.environ['CURB_QUERY_AUDIENCE'],
            "username": os.environ['CURB_QUERY_USERNAME'],
