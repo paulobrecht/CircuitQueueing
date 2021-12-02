@@ -79,20 +79,20 @@ else: # if none of these conditions holds, turn both water heaters and maybe poo
   gpio.output(WH_south,1)
   # wait 30 sec to see if a water heater has turned on. If not, turn on pool pump too.
   # This prevents unnecessary competition and an additional pump startup/kill/startup cycle.
-  time.sleep(15)
+  time.sleep(30)
 
   usage = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)[0]
 
   if usage == "ERROR":
-    logfunc(time=now, logloc=logloc, line=str("ERROR: Issues with Curb query: " + str(latest_json)))
+    logfunc(time=time.strftime("%H:%M:%S", time.localtime()), logloc=logloc, line=str("ERROR: Issues with Curb query: " + str(latest_json)))
     raise SystemExit("ERROR: Query error.")
   else:
     if usage[0] > 500 or usage[1] > 500:
       gpio.output(ppump,0)
-      Status_message = Status_message + " to run."
+      Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") to run."
     else:
       gpio.output(ppump,1)
-      Status_message = Status_message + " and pool pump to run."
+      Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") and pool pump to run."
 
 # Check/store status after making changes
 WHN_status.append(gpio.input(WH_north))

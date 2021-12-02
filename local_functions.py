@@ -27,7 +27,8 @@ def curbQuery(locationID, apiURL, AT):
   try:
     circuits = latest_json["circuits"]
   except BaseException as err:
-    outval = ["ERROR", str(err + " ---  " + type(err) + " --- " + latest.text)]
+    message = err + " ---  " + str(type(err)) + " --- " + latest.text
+    outval = ["ERROR", message]
   else:
     length = len(circuits)
     for i in range(length):
