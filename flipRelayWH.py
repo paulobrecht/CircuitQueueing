@@ -4,6 +4,8 @@
 import RPi.GPIO as gpio
 import time
 import sys
+import os
+from local_functions import logfunc
 
 # mapping 0/1 to OFF/ON
 map = {0:"OFF", 1:"ON"}

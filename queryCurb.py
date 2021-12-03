@@ -39,7 +39,7 @@ logloc = os.environ['CURB_LOCAL_LOG_LOC']
 [usage, latest_json] = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
 if usage == "ERROR":
-  logfunc(time=now, logloc=logloc, line=str("ERROR: Issues with Curb query: " + str(latest_json)))
+  logfunc(time=now, logloc=logloc, line=str("ERROR: Issues with Curb query (1): " + str(latest_json)))
   raise SystemExit("ERROR: Query error.")
 else:
   WHS, WHN, DRY, HPS, HPN, SUB, PP = usage
@@ -73,26 +73,34 @@ elif WHS > 1000:
   Status_message = "South water heater on (" + str(WHS) + " w), turning off north water heater and pool pump."
   gpio.output(WH_north,0)
   gpio.output(ppump,0)
-else: # if none of these conditions holds, turn both water heaters and maybe pool pump on
-  Status_message = "No other devices running, allowing both water heaters"
-  gpio.output(WH_north,1)
-  gpio.output(WH_south,1)
-  # wait 30 sec to see if a water heater has turned on. If not, turn on pool pump too.
-  # This prevents unnecessary competition and an additional pump startup/kill/startup cycle.
-  time.sleep(30)
+else: # no large consumers are running
 
-  usage = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)[0]
+  if WHN_status[0] == 1 and WHS_status[0] == 1 and PP_status[0] == 1: # if nothing was overridden before, and nothing is overridden now.
+    Status_message = "No overrides."
+    gpio.output(WH_north,1)
+    gpio.output(WH_south,1)
+    gpio.output(ppump,1)
+  else: # if something was overriden before, but nothing is, then turn on water heaters but check again after 30 s before turning on pool pump
+    Status_message = "No other devices running, allowing both water heaters"
+    gpio.output(WH_north,1)
+    gpio.output(WH_south,1)
+    # wait 30 sec to see if a water heater has turned on. If not, turn on pool pump too.
+    # This prevents unnecessary competition and an additional pump startup/kill/startup cycle.
+    time.sleep(30)
 
-  if usage == "ERROR":
-    logfunc(time=time.strftime("%H:%M:%S", time.localtime()), logloc=logloc, line=str("ERROR: Issues with Curb query: " + str(latest_json)))
-    raise SystemExit("ERROR: Query error.")
-  else:
-    if usage[0] > 500 or usage[1] > 500:
-      gpio.output(ppump,0)
-      Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") to run."
+    [usage2, latest_json2] = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
+
+    if usage2 == "ERROR":
+      newnow = time.strftime("%H:%M:%S", time.localtime())
+      logfunc(time=newnow, logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
+      raise SystemExit("ERROR: Query error.")
     else:
-      gpio.output(ppump,1)
-      Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") and pool pump to run."
+      if usage[0] > 500 or usage[1] > 500:
+        gpio.output(ppump,0)
+        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") to run."
+      else:
+        gpio.output(ppump,1)
+        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") and pool pump to run."
 
 # Check/store status after making changes
 WHN_status.append(gpio.input(WH_north))
