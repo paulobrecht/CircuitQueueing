@@ -27,7 +27,7 @@ def curbQuery(locationID, apiURL, AT):
   try:
     circuits = latest_json["circuits"]
   except BaseException as err:
-    message = err + " ---  " + str(type(err)) + " --- " + latest.text
+    message = str(err) + " ---  " + str(type(err)) + " --- " + latest.text
     outval = ["ERROR", message]
   else:
     length = len(circuits)
@@ -39,8 +39,10 @@ def curbQuery(locationID, apiURL, AT):
           WHS = this_circuit["w"]
         elif this_label.upper() == "WATER HEATER NORTH":
           WHN = this_circuit["w"]
-        elif this_label.upper() == "DRYER":
-          DRY = this_circuit["w"]
+        elif this_label.upper() == "DRYER 1":
+          DRY1 = this_circuit["w"]
+        elif this_label.upper() == "DRYER 2":
+          DRY2 = this_circuit["w"]
         elif this_label.upper() == "HEAT PUMP SOUTH":
           HPS = this_circuit["w"]
         elif this_label.upper() == "HEAT PUMP NORTH":
@@ -54,6 +56,7 @@ def curbQuery(locationID, apiURL, AT):
         elif this_label.upper() == "POOL PUMP 2":
           PP2 = this_circuit["w"]
     SUB = SUB1 + SUB2
+    DRY = DRY1 + DRY2
     PP = PP1 + PP2
     usage_list = [WHS, WHN, DRY, HPS, HPN, SUB, PP]
     outval = [usage_list, latest_json]
