@@ -29,6 +29,7 @@ else:
     flip = (arg1=="ON") * 1
 
 # Assign GPIO pins for each water heater
+# (we don't flip pool pump in this program)
 WH_north = 11
 WH_south = 13
 
@@ -40,11 +41,12 @@ gpio.setmode(gpio.BOARD)
 gpio.setup(WH_north,gpio.OUT)
 gpio.setup(WH_south,gpio.OUT)
 
-# flip relay to off or on depending on command line arg supplied to script on crontab
+# get current WH status
 WHN_status = [gpio.input(WH_north)]
 WHS_status = [gpio.input(WH_south)]
 
-# When turning OFF, turn both off. When turning on, turn on only North to avoid both running for 1 minute
+# flip relay to off or on depending on command line arg supplied to script on crontab
+# When turning OFF, turn both off. When turning on, turn on only North -- queryCurb will turn both on in a minute if North doesn't need to run right now
 if flip==1:
   gpio.output(WH_north,1)
   gpio.output(WH_south,0)

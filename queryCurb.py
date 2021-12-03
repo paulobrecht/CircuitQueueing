@@ -9,9 +9,9 @@ from local_functions import logfunc
 from local_functions import curbQuery
 
 # don't run at 5 am, 9 am, or 9 pm when WHs comes back on. Wait one minute for logic in flipRelayWH.py to execute.
-dt = time.strftime("%H:%M", time.localtime())
-if dt in ["05:00", "09:00", "21:00"]:
-  sys.exit()
+# dt = time.strftime("%H:%M", time.localtime())
+# if dt in ["05:00", "09:00", "21:00"]:
+#   sys.exit()
 
 # mapping 0/1 to OFF/ON
 map = {0:"OFF", 1:"ON"}
@@ -24,7 +24,7 @@ gpio.setup(WH_north,gpio.OUT)
 gpio.setup(WH_south,gpio.OUT)
 gpio.setup(ppump,gpio.OUT)
 
-# Check/store status before logic
+# Check/store initial status of each as first item of what will be a two-item list
 WHN_status = [gpio.input(WH_north)]
 WHS_status = [gpio.input(WH_south)]
 PP_status  = [gpio.input(ppump)]
@@ -36,11 +36,11 @@ apiURL=os.environ["CURB_API_URL"]
 AT = os.environ["CURB_ACCESS_TOKEN"]
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
 
-[usage, latest_json] = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
+usage, latest_json = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
 if usage == "ERROR":
   logfunc(time=now, logloc=logloc, line=str("ERROR: Issues with Curb query (1): " + str(latest_json)))
-  raise SystemExit("ERROR: Query error.")
+  sys.exit()
 else:
   WHS, WHN, DRY, HPS, HPN, SUB, PP = usage
 
@@ -73,27 +73,28 @@ elif WHS > 1000:
   Status_message = "South water heater on (" + str(WHS) + " w), turning off north water heater and pool pump."
   gpio.output(WH_north,0)
   gpio.output(ppump,0)
-else: # no large consumers are running
+else:
+
+  # no large consumers are running, allow water heaters and pool pump to run
+  # BUT turn on water heaters and wait 30 seconds. Then if neither water heater kicks on, THEN allow pool pump to run
 
   if WHN_status[0] == 1 and WHS_status[0] == 1 and PP_status[0] == 1: # if nothing was overridden before, and nothing is overridden now.
     Status_message = "No overrides."
     gpio.output(WH_north,1)
     gpio.output(WH_south,1)
     gpio.output(ppump,1)
-  else: # if something was overriden before, but nothing is, then turn on water heaters but check again after 30 s before turning on pool pump
+  else: # if something was overriden before, but now nothing is, then turn on water heaters and check again in 30 s
     Status_message = "No other devices running, allowing both water heaters"
     gpio.output(WH_north,1)
     gpio.output(WH_south,1)
-    # wait 30 sec to see if a water heater has turned on. If not, turn on pool pump too.
-    # This prevents unnecessary competition and an additional pump startup/kill/startup cycle.
     time.sleep(30)
 
-    [usage2, latest_json2] = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
+    usage2, latest_json2 = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
     if usage2 == "ERROR":
       newnow = time.strftime("%H:%M:%S", time.localtime())
       logfunc(time=newnow, logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
-      raise SystemExit("ERROR: Query error.")
+      sys.exit()
     else:
       if usage[0] > 500 or usage[1] > 500:
         gpio.output(ppump,0)
