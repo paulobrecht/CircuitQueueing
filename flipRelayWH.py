@@ -32,6 +32,7 @@ else:
 # (we don't flip pool pump in this program)
 WH_north = 11
 WH_south = 13
+ppump    = 15
 
 # Set mode to BOARD to refer to Pi pin numbers
 gpio.setwarnings(False)
@@ -40,22 +41,33 @@ gpio.setmode(gpio.BOARD)
 # Set two pins (one for each device) as output
 gpio.setup(WH_north,gpio.OUT)
 gpio.setup(WH_south,gpio.OUT)
+gpio.setup(ppump,gpio.OUT)
 
 # get current WH status
 WHN_status = [gpio.input(WH_north)]
 WHS_status = [gpio.input(WH_south)]
+PP_status = [gpio.input(ppump)]
 
 # flip relay to off or on depending on command line arg supplied to script on crontab
-# When turning OFF, turn both off. When turning on, turn on only North -- queryCurb will turn both on in a minute if North doesn't need to run right now
-if flip==1:
+# When turning OFF, turn both off. When turning on, turn on only North pump -- queryCurb will turn everything else on if North doesn't need to run right now
+if flip == 1:
   gpio.output(WH_north,1)
   gpio.output(WH_south,0)
-elif flip==0:
+  gpio.output(ppump,0)
+elif flip == 0:
   gpio.output(WH_north,0)
   gpio.output(WH_south,0)
+  gpio.output(ppump,0)
 
 # log action
 WHN_status.append(gpio.input(WH_north))
 WHS_status.append(gpio.input(WH_south))
-message = str("flipRelayWH changed status of water heaters. North: " + map[WHN_status[0]] + "->" + map[WHN_status[1]] + ", South: " + map[WHS_status[0]] + "->" + map[WHS_status[1]])
+PP_status.append(gpio.input(ppump))
+
+a = "->"
+N = [map[WHN_status[0]], map[WHN_status[1]]]
+S = [map[WHS_status[0]], map[WHS_status[1]]]
+P = [map[PP_status[0]], map[PP_status[1]]]
+
+message = "flipRelayWH changed status. North: " + N[0] + a + N[1] + ", South: " + S[0] + a + S[1] + ", Pool Pump: " +  P[0] + a + P[1]
 logfunc(time=now, logloc=logloc, line=message)

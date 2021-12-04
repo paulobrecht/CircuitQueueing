@@ -13,7 +13,6 @@ def curbQuery(locationID, apiURL, AT):
   import json
   import requests
   import os
-  from sys import exit
 
   # get latest usage data using daily token
   Lurl = apiURL + locationID

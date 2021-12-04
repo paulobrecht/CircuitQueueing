@@ -19,21 +19,21 @@ mv ${fn2} ${arch_fn2}
 
 # make new activity log file
 touch ${fn1}
-echo "- - - - - - - - - - - - - - - - - - - - - - - -"                    >> ${fn1}
-echo "Log File for ${dt3}"                                                >> ${fn1}
-echo "- - - - - - - - - - - - - - - - - - - - - - - -"                    >> ${fn1}
-echo ""                                                                   >> ${fn1}
-echo "${dt2} (Yesterday): Archived daily log file, starting a fresh one." >> ${fn1}
-echo ""                                                                   >> ${fn1}
+echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn1}
+echo "Log File for ${dt3}"                                      >> ${fn1}
+echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn1}
+echo ""                                                         >> ${fn1}
+echo "${dt2}: Archived yesterday's file, starting a fresh one." >> ${fn1}
+echo ""                                                         >> ${fn1}
 
 # make new consumption log file
 touch ${fn2}
-echo "- - - - - - - - - - - - - - - - - - - - - - - -"                    >> ${fn2}
-echo "Consumption Log File for ${dt3}"                                    >> ${fn2}
-echo "- - - - - - - - - - - - - - - - - - - - - - - -"                    >> ${fn2}
-echo ""                                                                   >> ${fn2}
-echo "${dt2} (Yesterday): Archived daily log file, starting a fresh one." >> ${fn2}
-echo ""                                                                   >> ${fn2}
+echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
+echo "Consumption Log File for ${dt3}"                          >> ${fn2}
+echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
+echo ""                                                         >> ${fn2}
+echo "${dt2}: Archived yesterday's file, starting a fresh one." >> ${fn2}
+echo ""                                                         >> ${fn2}
 
 # compress archives
 gzip ${arch_fn1} ${arch_fn2}

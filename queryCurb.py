@@ -4,7 +4,7 @@ import time
 import json
 import RPi.GPIO as gpio
 import os
-from sys import exit
+import sys
 from local_functions import logfunc
 from local_functions import curbQuery
 
@@ -87,21 +87,23 @@ else:
     Status_message = "No other devices running, allowing both water heaters"
     gpio.output(WH_north,1)
     gpio.output(WH_south,1)
-    time.sleep(30)
+    gpio.output(ppump,1)
 
-    usage2, latest_json2 = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
+#    time.sleep(30)
 
-    if usage2 == "ERROR":
-      newnow = time.strftime("%H:%M:%S", time.localtime())
-      logfunc(time=newnow, logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
-      sys.exit()
-    else:
-      if usage[0] > 500 or usage[1] > 500:
-        gpio.output(ppump,0)
-        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") to run."
-      else:
-        gpio.output(ppump,1)
-        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") and pool pump to run."
+#    usage2, latest_json2 = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
+
+#    if usage2 == "ERROR":
+#      newnow = time.strftime("%H:%M:%S", time.localtime())
+#      logfunc(time=newnow, logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
+#      sys.exit()
+#    else:
+#      if usage[0] > 500 or usage[1] > 500:
+#        gpio.output(ppump,0)
+#        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") to run."
+#      else:
+#        gpio.output(ppump,1)
+#        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") and pool pump to run."
 
 # Check/store status after making changes
 WHN_status.append(gpio.input(WH_north))
