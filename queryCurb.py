@@ -83,13 +83,13 @@ else:
     gpio.output(WH_north,1)
     gpio.output(WH_south,1)
     gpio.output(ppump,1)
-  else: # if something was overriden before, but now nothing is, then turn on water heaters and check again in 30 s
+  else: # if something was overriden before, but now nothing is, then turn on water heaters and check again in 60 s
     Status_message = "No other devices running, allowing both water heaters"
     gpio.output(WH_north,1)
     gpio.output(WH_south,1)
     gpio.output(ppump,0)
 
-    time.sleep(30)
+    time.sleep(60)
     usage2, latest_json2 = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
     if usage2 == "ERROR":

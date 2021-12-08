@@ -62,5 +62,5 @@ a = "->"
 N = [map[WHN_status[0]], map[WHN_status[1]]]
 S = [map[WHS_status[0]], map[WHS_status[1]]]
 
-message = "flipRelayWH changed status. North: " + N[0] + a + N[1] + ", South: " + S[0] + a + S[1] + ", Pool Pump: " +  P[0] + a + P[1]
+message = "flipRelayWH changed status. North: " + N[0] + a + N[1] + ", South: " + S[0] + a + S[1] 
 logfunc(time=now, logloc=logloc, line=message)
