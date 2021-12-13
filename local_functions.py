@@ -1,10 +1,15 @@
 # log function
-def logfunc(logloc, line, time=""):
+def logfunc(logloc, line, now = None):
+  import time
+
   log = open(logloc, "a")
-  if time == "":
+  if now is None:
+    now = time.strftime("%H:%M:%S", time.localtime())
+    log.write(now + ": " + line + "\n")
+  elif time == "":
     log.write(line + "\n")
   else:
-    log.write(time + ": " + line + "\n")
+    log.write(now + ": " + line + "\n")
   log.close()
 
 # Curb query function

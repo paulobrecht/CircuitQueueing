@@ -36,14 +36,14 @@ try:
 except FileNotFoundError:
   pass
 except:
-  logfunc(time=now, logloc=logloc, line=str(now + ": ERROR: Problem with removal of previous access token file. Trying to continue..."))
+  logfunc(logloc=logloc, line=str(now + ": ERROR: Problem with removal of previous access token file. Trying to continue..."))
 
 try:
   outfile = open(outloc, "w")
   outfile.write(AT)
   outfile.close()
 except:
-  logfunc(time=now, logloc=logloc, line=str(now + ": ERROR: Could not replace access token."))
+  logfunc(logloc=logloc, line=str(now + ": ERROR: Could not replace access token."))
   raise SystemExit(str(now + ": ERROR: Could not replace access token."))
 else:
-  logfunc(time=now, logloc=logloc, line="getAccessToken refreshed Curb API access token.")
+  logfunc(logloc=logloc, line="getAccessToken refreshed Curb API access token.")

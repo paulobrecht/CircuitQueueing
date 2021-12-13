@@ -8,11 +8,6 @@ import sys
 from local_functions import logfunc
 from local_functions import curbQuery
 
-# don't run at 5 am, 9 am, or 9 pm when WHs comes back on. Wait one minute for logic in flipRelayWH.py to execute.
-# dt = time.strftime("%H:%M", time.localtime())
-# if dt in ["05:00", "09:00", "21:00"]:
-#   sys.exit()
-
 # mapping 0/1 to OFF/ON
 map = {0:"OFF", 1:"ON"}
 
@@ -39,7 +34,7 @@ logloc = os.environ['CURB_LOCAL_LOG_LOC']
 usage, latest_json = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
 if usage == "ERROR":
-  logfunc(time=now, logloc=logloc, line=str("ERROR: Issues with Curb query (1): " + str(latest_json)))
+  logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (1): " + str(latest_json)))
   sys.exit()
 else:
   WHS, WHN, DRY, HPS, HPN, SUB, PP = usage
@@ -119,10 +114,10 @@ if WHN_change or WHS_change or PP_change:
   tmp_change2 = str(" WHN:" + map[WHN_status[0]] + "->" + map[WHN_status[1]] + ", ")
   tmp_change3 = str(" WHS:" + map[WHS_status[0]] + "->" + map[WHS_status[1]] + ", ")
   tmp_change4 = str(" PP:"  + map[PP_status[0]]  + "->" + map[PP_status[1]])
-  logfunc(time=now, logloc=logloc, line=str(tmp_change1 + tmp_change2 + tmp_change3 + tmp_change4))
+  logfunc(logloc=logloc, line=str(tmp_change1 + tmp_change2 + tmp_change3 + tmp_change4))
 else:
   tmp = {"HPN": HPN, "HPS": HPS, "PP": PP, "DRY": DRY, "SUB": SUB, "WHN": WHN, "WHS": WHS, "WHN_stat": WHN_status, "WHS_stat": WHS_status, "PP_stat": PP_status}
-  logfunc(time=now, logloc=logloc, line=str(json.dumps(tmp)))
+  logfunc(logloc=logloc, line=str(json.dumps(tmp)))
 
 
 # Now, write all activity to a separate file
@@ -152,4 +147,4 @@ for item in circuits:
 # json file
 jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
 for_output=json.dumps(circuits2)
-logfunc(logloc=jsonloc, line=for_output)
+logfunc(now="", logloc=jsonloc, line=for_output)

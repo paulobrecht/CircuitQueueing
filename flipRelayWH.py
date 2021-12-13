@@ -18,13 +18,13 @@ now = time.strftime("%H:%M:%S", time.localtime())
 try:
   arg1 = sys.argv[1]
 except IndexError:
-  log.write(now + ": Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'.\n")
-  raise SystemExit("Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'.")
+  message="Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'"
+  logfunc(logloc=logloc, line=message)
 else:
   arg1 = arg1.upper() # case-insensitive
   if arg1 not in ["OFF", "ON"]:
-    log.write(now + ": ERROR. Provided invocation argument " + arg1 + " is invalid. Specify only OFF or ON.\n")
-    raise SystemExit("ERROR: Provided invocation argument " + arg1 + " is invalid. You must specify either OFF or ON.")
+    message = "ERROR. Provided invocation argument " + arg1 + " is invalid. Specify only OFF or ON."
+    logfunc(logloc=logloc, line=message)
   else:
     flip = (arg1=="ON") * 1
 
@@ -63,4 +63,4 @@ N = [map[WHN_status[0]], map[WHN_status[1]]]
 S = [map[WHS_status[0]], map[WHS_status[1]]]
 
 message = "flipRelayWH changed status. North: " + N[0] + a + N[1] + ", South: " + S[0] + a + S[1] 
-logfunc(time=now, logloc=logloc, line=message)
+logfunc(logloc=logloc, line=message)
