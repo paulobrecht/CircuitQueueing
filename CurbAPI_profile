@@ -16,4 +16,15 @@ export CURB_LOCAL_JSON_LOC="$CIRCUITQUEUEING/consumption_log.json"
 export CURB_ACCESS_TOKEN_LOC="$CIRCUITQUEUEING/accessToken.txt"
 export CURB_ACCESS_TOKEN=`cat $CURB_ACCESS_TOKEN_LOC`
 
+export OVERRIDE_FLAG_LOG="$HOME/CurbAPI/4shortcuts/override_flag"
+
+function logFunc
+# call with 2 args:
+#   $1: name of script that calls function (basename $0)
+#   $2: message to write to log file
+{
+  dt=`date +'%H:%M:%S'`
+  echo "${dt}: (${1}) $2" >> ${CURB_LOCAL_LOG_LOC}
+}
+
 umask 077

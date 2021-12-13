@@ -3,4 +3,6 @@ consumption_log.json
 accessToken.txt
 old/**
 logs/**
+4shortcuts/testing/**
+4shortcuts/override_flag
 __pycache__/**
