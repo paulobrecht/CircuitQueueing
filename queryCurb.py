@@ -40,31 +40,39 @@ else:
   WHS, WHN, DRY, HPS, HPN, SUB, PP = usage
 
 # Logic
-if HPN > 300 or HPS > 300: # if either heat pump is on, turn both water heaters and pool pump off
+
+# Thresholds
+T_HP = 300
+T_DRY = 100
+T_SUB1 = 3000
+T_SUB2 = 1000
+T_WH = 500
+
+if HPN > T_HP or HPS > T_HP: # if either heat pump is on, turn both water heaters and pool pump off
   Status_message = "Heat pump(s) on (" + str(HPN) + "w and " + str(HPS) + "w), turning off both water heaters and pool pump."
   gpio.output(WH_north,0)
   gpio.output(WH_south,0)
   gpio.output(ppump,0)
-elif DRY > 100: # if dryer is on, turn both water heaters and pool pump off
+elif DRY > T_DRY: # if dryer is on, turn both water heaters and pool pump off
   Status_message = "Dryer running (" + str(DRY) + " w), turning off both water heaters and pool pump."
   gpio.output(WH_north,0)
   gpio.output(WH_south,0)
   gpio.output(ppump,0)
-elif SUB > 3000: # if kitchen consumption is really high, turn both water heaters and pool pump off
+elif SUB > T_SUB1: # if kitchen consumption is really high, turn both water heaters and pool pump off
   Status_message = "Kitchen consumption very high (" + str(SUB) + " w), turning off both water heaters and pool pump."
   gpio.output(WH_north,0)
   gpio.output(WH_south,0)
   gpio.output(ppump,0)
-elif SUB > 1000: # if kitchen consumption is only kinda high, turn just water heaters off (but explicitly allow pool pump to run)
+elif SUB > T_SUB2: # if kitchen consumption is only kinda high, turn just water heaters off (but explicitly allow pool pump to run)
   Status_message = "Kitchen consumption high (" + str(SUB) + " w), turning off both water heaters."
   gpio.output(WH_north,0)
   gpio.output(WH_south,0)
   gpio.output(ppump,1)
-elif WHN > 1000: # if one water heater is on, turn the other and pool pump off
+elif WHN > T_WH: # if one water heater is on, turn the other and pool pump off -- prioritize north because more showers are there
   Status_message = "North water heater on (" + str(WHN) + " w), turning off south water heater and pool pump."
   gpio.output(WH_south,0)
   gpio.output(ppump,0)
-elif WHS > 1000:
+elif WHS > T_WH:
   Status_message = "South water heater on (" + str(WHS) + " w), turning off north water heater and pool pump."
   gpio.output(WH_north,0)
   gpio.output(ppump,0)
@@ -74,30 +82,28 @@ else:
   # BUT turn on water heaters and wait 30 seconds. Then if neither water heater kicks on, THEN allow pool pump to run
 
   if WHN_status[0] == 1 and WHS_status[0] == 1 and PP_status[0] == 1: # if nothing was overridden before, and nothing is overridden now.
-    Status_message = "No overrides."
     gpio.output(WH_north,1)
     gpio.output(WH_south,1)
     gpio.output(ppump,1)
-  else: # if something was overriden before, but now nothing is, then turn on water heaters and check again in 60 s
+  else: # if something was overriden before, but now nothing is, then turn on water heaters and check again in 30 s
     Status_message = "No other devices running, allowing both water heaters"
     gpio.output(WH_north,1)
     gpio.output(WH_south,1)
     gpio.output(ppump,0)
 
-    time.sleep(60)
+    time.sleep(30)
     usage2, latest_json2 = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
     if usage2 == "ERROR":
-      newnow = time.strftime("%H:%M:%S", time.localtime())
-      logfunc(time=newnow, logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
+      logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
       sys.exit()
     else:
-      if usage[0] > 500 or usage[1] > 500:
+      if usage2[0] > T_WH or usage2[1] > T_WH:
         gpio.output(ppump,0)
-        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") to run."
+        Status_message = Status_message + " (" + str(usage2[0]) + ", " + str(usage2[1]) + ") to run."
       else:
         gpio.output(ppump,1)
-        Status_message = Status_message + " (" + str(usage[0]) + ", " + str(usage[1]) + " at " + time.strftime("%H:%M:%S", time.localtime()) + ") and pool pump to run."
+        Status_message = Status_message + " (" + str(usage2[0]) + ", " + str(usage2[1]) + ") and pool pump (" + str(usage2[6]) + ") to run."
 
 # Check/store status after making changes
 WHN_status.append(gpio.input(WH_north))
