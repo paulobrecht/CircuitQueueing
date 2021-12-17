@@ -63,11 +63,10 @@ elif SUB > T_SUB1: # if kitchen consumption is really high, turn both water heat
   gpio.output(WH_north,0)
   gpio.output(WH_south,0)
   gpio.output(ppump,0)
-elif SUB > T_SUB2: # if kitchen consumption is only kinda high, turn just water heaters off (but explicitly allow pool pump to run)
+elif SUB > T_SUB2: # if kitchen consumption is only kinda high, turn just water heaters off, don't force pool pump either way
   Status_message = "Kitchen consumption high (" + str(SUB) + " w), turning off both water heaters."
   gpio.output(WH_north,0)
   gpio.output(WH_south,0)
-  gpio.output(ppump,1)
 elif WHN > T_WH: # if one water heater is on, turn the other and pool pump off -- prioritize north because more showers are there
   Status_message = "North water heater on (" + str(WHN) + " w), turning off south water heater and pool pump."
   gpio.output(WH_south,0)
