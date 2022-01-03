@@ -99,10 +99,10 @@ else:
     else:
       if usage2[0] > T_WH or usage2[1] > T_WH:
         gpio.output(ppump,0)
-        Status_message = Status_message + " (" + str(usage2[0]) + ", " + str(usage2[1]) + ") to run."
+        Status_message = Status_message + " (" + str(usage2[1]) + ", " + str(usage2[0]) + ") to run."
       else:
         gpio.output(ppump,1)
-        Status_message = Status_message + " (" + str(usage2[0]) + ", " + str(usage2[1]) + ") and pool pump (" + str(usage2[6]) + ") to run."
+        Status_message = Status_message + " (" + str(usage2[1]) + ", " + str(usage2[0]) + ") and pool pump (" + str(usage2[6]) + ") to run."
 
 # Check/store status after making changes
 WHN_status.append(gpio.input(WH_north))

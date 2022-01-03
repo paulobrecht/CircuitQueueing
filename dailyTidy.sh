@@ -1,8 +1,8 @@
 #!/bin/bash
 
-dt1=`date +'%Y-%m-%d'` # YMD right now, for archive log file name
+dt1=`date +'%Y-%m-%d'` # YMD right now, for archive log file names
 dt2=`date +'%H:%M:%S'` # HMS right now
-dt3=$(date +'%A, %B %e' -d "+1 day") # tomnorrow for header
+dt3=`date +'%A, %B %e'` # For file headers
 
 rootdir="$HOME/CurbAPI"
 logdir="${rootdir}/logs"
