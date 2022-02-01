@@ -4,7 +4,7 @@ dt1=`date +"%D %H:%M:%S"`
 
 desc=$1
 apiurl="https://api.prowlapp.com/publicapi/add"
-apikey="50af7aee921448533f1941ffbcac7271f28b675f"
+apikey=${PROWL_API_KEY}
 prty=0
 app="CurbAPI"
 event="Curb API query returned an error at ${dt1}"

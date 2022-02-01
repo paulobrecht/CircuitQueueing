@@ -9,6 +9,7 @@ export CURB_QUERY_PASSWORD="<password>"
 export CURB_QUERY_CLIENT_ID="<client ID>"
 export CURB_QUERY_CLIENT_SECRET="<Client Secret>"
 export CURB_LOCATION_ID="<location ID>"
+export PROWL_API_KEY="<api key>"
 
 # local file paths
 export CURB_LOCAL_LOG_LOC="$CIRCUITQUEUEING/activity_log.txt"
@@ -16,7 +17,7 @@ export CURB_LOCAL_JSON_LOC="$CIRCUITQUEUEING/consumption_log.json"
 export CURB_ACCESS_TOKEN_LOC="$CIRCUITQUEUEING/accessToken.txt"
 export CURB_ACCESS_TOKEN=`cat $CURB_ACCESS_TOKEN_LOC`
 
-export OVERRIDE_FLAG_LOG="$HOME/CurbAPI/4shortcuts/override_flag"
+export OVERRIDE_FLAG_LOC="$HOME/CurbAPI/4shortcuts/override_flag"
 
 function logFunc
 # call with 2 args:
