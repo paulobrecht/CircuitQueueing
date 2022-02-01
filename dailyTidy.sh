@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dt1=`date +'%Y-%m-%d'` # YMD right now, for archive log file names
+dt1=`date +'%Y-%m-%d' -d 'yesterday'` # YMD yesterday, for archive log file names
 dt2=`date +'%H:%M:%S'` # HMS right now
 dt3=`date +'%A, %B %e'` # For file headers
 

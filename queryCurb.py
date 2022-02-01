@@ -5,6 +5,7 @@ import json
 import RPi.GPIO as gpio
 import os
 import sys
+from subprocess import call
 from local_functions import logfunc
 from local_functions import curbQuery
 
@@ -33,8 +34,13 @@ logloc = os.environ['CURB_LOCAL_LOG_LOC']
 
 usage, latest_json = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
-if usage == "ERROR":
+if usage == "ERROR": # log it, send prowl alert, turn everything on, exit
   logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (1): " + str(latest_json)))
+  execStr = "./prowl.sh " + "\'" + str(latest_json) + "\'"
+  rc = call(execStr)
+  gpio.output(WH_north,1)
+  gpio.output(WH_south,1)
+  gpio.output(ppump,1)
   sys.exit()
 else:
   WHS, WHN, DRY, HPS, HPN, SUB, PP = usage
@@ -93,8 +99,13 @@ else:
     time.sleep(30)
     usage2, latest_json2 = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
-    if usage2 == "ERROR":
+    if usage2 == "ERROR": # log it, send prowl alert, turn everything on, exit
       logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
+      execStr = "./prowl.sh " + "\'" + str(latest_json2) + "\'"
+      rc = call(execStr)
+      gpio.output(WH_north,1)
+      gpio.output(WH_south,1)
+      gpio.output(ppump,1)
       sys.exit()
     else:
       if usage2[0] > T_WH or usage2[1] > T_WH:
