@@ -27,9 +27,30 @@ def getEcobeeAuthToken(pin, key=key, headers={'content-type': 'application/json'
   payload = {"grant_type": "ecobeePin", "code": pin, "client_id": key}
   key = requests.post("https://api.ecobee.com/token", params=payload, headers=headers)
   jkey = json.loads(key.text)
+
+  # write refresh token to file
+  outloc = os.environ['ECOBEE_REFRESH_TOKEN_LOC']
+  try:
+    os.remove(outloc)
+  except FileNotFoundError:
+    pass
+  except Exception:
+    logfunc(logloc=logloc, line=str("ERROR: Problem with removal of previous ecobee refresh token file. Trying to continue..."))
+
+  try:
+    ECOBEE_REFRESH_TOKEN = jkey['refresh_token']
+    outfile = open(outloc, "w")
+    outfile.write(ECOBEE_REFRESH_TOKEN)
+    outfile.close()
+  except Exception:
+    logfunc(logloc=logloc, line=str("ERROR: Could not replace ecobee refresh token."))
+    raise SystemExit(str("ERROR: Could not replace ecobee refresh token."))
+  else:
+    logfunc(logloc=logloc, line="getEcobeeAuthToken() refreshed ecobee refresh token token.")
+
   return jkey
 
-# jkey = getEcobeeAuthToken(pin=pin, key=os.environ['ECOBEE_API_KEY'])
+# jkey = getEcobeeAuthToken(pin=ECOBEE_PIN, key=os.environ['ECOBEE_API_KEY'])
 # ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2, ECOBEE_REFRESH_TOKEN = jkey.values()
 
 
@@ -92,6 +113,7 @@ def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterv
 
   nowStrp = time.mktime(time.strptime(thermostatTime, "%Y-%m-%d %H:%M:%S"))
   end = time.localtime(nowStrp + holdInterval)
+  endEpoch = time.mktime(end)
   endDate = time.strftime("%Y-%m-%d", end)
   endTime = time.strftime("%H:%M:%S", end)
   setHoldSelection = {'selectionType':'registered','selectionMatch':''}
@@ -99,7 +121,7 @@ def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterv
   msgParams = {"text": "On hold, waiting for other heat pump to finish."}
   setHoldJSON = {'selection': setHoldSelection, 'functions':[{'type':'setHold', 'params':setHoldParams}, {"type":"sendMessage","params":msgParams}]}
   setHold = requests.post('https://api.ecobee.com/1/thermostat', headers=headers, json=setHoldJSON)
-  return setHold
+  return setHold, endEpoch
 
 
 

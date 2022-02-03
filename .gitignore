@@ -1,4 +1,5 @@
 activity_log.txt
+refreshToken.txt
 consumption_log.json
 accessToken.txt
 old/**
