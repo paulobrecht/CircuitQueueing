@@ -19,7 +19,6 @@ def getEcobeePin(key=key, headers={'content-type': 'application/json', 'charset'
 
 
 
-
 def getEcobeeAuthToken(pin, key=key, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
   import json
   import requests
@@ -56,7 +55,6 @@ def getEcobeeAuthToken(pin, key=key, headers={'content-type': 'application/json'
 
 
 
-
 # Refresh authorization token
 def refreshEcobeeAuthToken(refresh_token, key=key, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
   import json
@@ -69,7 +67,6 @@ def refreshEcobeeAuthToken(refresh_token, key=key, headers={'content-type': 'app
 
 # jkey = refreshEcobeeAuthToken(refresh_token=os.environ['ECOBEE_REFRESH_TOKEN'])
 # ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-
 
 
 
@@ -103,7 +100,7 @@ def queryEcobee(auth_token, includeSettings=True, includeEvents=False, headers={
 
 
 # post hold
-def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterval=300, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterval=240, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
   import json
   import requests
   import time
@@ -120,8 +117,10 @@ def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterv
   setHoldParams = {'holdType':'dateTime', 'endDate':endDate, 'endTime':endTime,'heatHoldTemp':heatRangeLow,'coolHoldTemp':coolRangeHigh}
   msgParams = {"text": "On hold, waiting for other heat pump to finish."}
   setHoldJSON = {'selection': setHoldSelection, 'functions':[{'type':'setHold', 'params':setHoldParams}, {"type":"sendMessage","params":msgParams}]}
+
   setHold = requests.post('https://api.ecobee.com/1/thermostat', headers=headers, json=setHoldJSON)
-  return setHold, endEpoch
+  resultAPI = parseResponse(setHold)
+  return setHold, endEpoch, resultAPI
 
 
 
@@ -135,8 +134,28 @@ def resumeProgram(auth_token, headers={'content-type': 'application/json', 'char
   headers.update(Authorization = tokenstr)
 
   rP_Selection = {'selectionType':'registered','selectionMatch':''}
-  rP_Params = {"resumeAll":"true"}
+  rP_Params = {"resumeAll":"false"}
   msgParams = {"text": "Other heat pump has finished. Resuming schedule."}
   rP_json = {'selection': rP_Selection, 'functions':[{'type':'resumeProgram','params':rP_Params},{"type":"sendMessage","params":msgParams}]}
   rP = requests.post('https://api.ecobee.com/1/thermostat', headers=headers, json=rP_json)
-  return rP
+  resultAPI = parseResponse(rP)
+  return rP, resultAPI
+
+
+
+
+# parse ecobee API replies
+def parseResponse(item):
+  import json
+  import inspect
+  import local_functions
+  test = json.loads(item.text)
+  obj = json.loads(item.text)['status']
+  statusCode = obj['code'] # 0 on success
+  statusMessage = obj['message'] # "" on success
+  statusCodeHTTP = item.status_code # 200 (possibly 2XX?) on success
+  statusOK = item.ok # "True" on success
+
+  caller = inspect.stack()[1].function
+  parseObj = (caller, statusCode, statusMessage, statusCodeHTTP, statusOK)
+  return parseObj
