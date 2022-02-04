@@ -191,7 +191,7 @@ def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterv
   tokenstr = "Bearer " + auth_token
   headers.update(Authorization = tokenstr)
 
-  nowStrp = mktime(time.strptime(thermostatTime, "%Y-%m-%d %H:%M:%S"))
+  nowStrp = mktime(strptime(thermostatTime, "%Y-%m-%d %H:%M:%S"))
   end = localtime(nowStrp + holdInterval)
   endEpoch = mktime(end)
   endDate = strftime("%Y-%m-%d", end)
@@ -250,10 +250,12 @@ def parseResponse(item):
 
 def prowl(msg):
   import subprocess
+  import inspect
+  caller = inspect.stack()[1].function
+  execList = ["./prowl.sh", str("\'ERROR: " + msg + "\'"), caller]
+  output = subprocess.run(execList, capture_output = True)
+  xmlobj = output.stdout.decode("utf-8")
 
-  execStr = "./prowl.sh \'ERROR:" + msg + "\'"
-  rc = subprocess.call(execStr)
-  return rc
 
 def handleException(msg, logloc):
   import inspect
