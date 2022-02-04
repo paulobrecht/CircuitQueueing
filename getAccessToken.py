@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 
-import json
 import os
-import os.path
-import requests
-import time
 import RPi.GPIO as gpio
+from json import loads
+from requests import post
+from time import strftime
 from local_functions import logfunc
 
 # Access token request parameters
@@ -19,14 +18,14 @@ payload = {"grant_type": "password",
 headers = {'content-type: application/json','cache-control: no-cache', 'accept-charset: UTF-8'}
 
 # send request for access token
-key = requests.post(ATurl, json=payload)
+key = post(ATurl, json=payload)
 
 # parse response to pull out token
-jkey = json.loads(key.text)
+jkey = loads(key.text)
 AT = jkey["access_token"]
 
 # log file
-now = time.strftime("%H:%M:%S", time.localtime())
+now = strftime("%H:%M:%S", \localtime())
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
 
 # write AT to file for re-use (expires after 24 hours)

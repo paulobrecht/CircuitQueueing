@@ -1,13 +1,11 @@
 #!/usr/bin/python3
 
-import time
-import json
-import RPi.GPIO as gpio
 import os
-import sys
-from subprocess import call
-from local_functions import logfunc
-from local_functions import curbQuery
+import RPi.GPIO as gpio
+from sys import exit
+from time import strftime, localtime, sleep
+from json import dumps
+from local_functions import logfunc, curbQuery, prowl
 
 # mapping 0/1 to OFF/ON
 map = {0:"OFF", 1:"ON"}
@@ -26,7 +24,7 @@ WHS_status = [gpio.input(WH_south)]
 PP_status  = [gpio.input(ppump)]
 
 # Call query function and parse returned values
-now = time.strftime("%H:%M:%S", time.localtime())
+now = strftime("%H:%M:%S", localtime())
 locationID=os.environ["CURB_LOCATION_ID"]
 apiURL=os.environ["CURB_API_URL"]
 AT = os.environ["CURB_ACCESS_TOKEN"]
@@ -36,12 +34,11 @@ usage, latest_json = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
 if usage == "ERROR": # log it, send prowl alert, turn everything on, exit
   logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (1): " + str(latest_json)))
-  execStr = "./prowl.sh " + "\'" + str(latest_json) + "\'"
-  rc = call(execStr)
+  prowl(msg="./prowl.sh \'" + str(latest_json) + "\'")
   gpio.output(WH_north,1)
   gpio.output(WH_south,1)
   gpio.output(ppump,1)
-  sys.exit()
+  exit()
 else:
   WHS, WHN, DRY, HPS, HPN, SUB, PP = usage
 
@@ -96,17 +93,16 @@ else:
     gpio.output(WH_south,1)
     gpio.output(ppump,0)
 
-    time.sleep(30)
+    sleep(30)
     usage2, latest_json2 = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
     if usage2 == "ERROR": # log it, send prowl alert, turn everything on, exit
       logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
-      execStr = "./prowl.sh " + "\'" + str(latest_json2) + "\'"
-      rc = call(execStr)
+      prowl(msg="./prowl.sh \'" + str(latest_json2) + "\'")
       gpio.output(WH_north,1)
       gpio.output(WH_south,1)
       gpio.output(ppump,1)
-      sys.exit()
+      exit()
     else:
       if usage2[0] > T_WH or usage2[1] > T_WH:
         gpio.output(ppump,0)
@@ -133,7 +129,7 @@ if WHN_change or WHS_change or PP_change:
   logfunc(logloc=logloc, line=str(tmp_change1 + tmp_change2 + tmp_change3 + tmp_change4))
 else:
   tmp = {"HPN": HPN, "HPS": HPS, "PP": PP, "DRY": DRY, "SUB": SUB, "WHN": WHN, "WHS": WHS, "WHN_stat": WHN_status, "WHS_stat": WHS_status, "PP_stat": PP_status}
-  logfunc(logloc=logloc, line=str(json.dumps(tmp)))
+  logfunc(logloc=logloc, line=str(dumps(tmp)))
 
 
 # Now, write all activity to a separate file
@@ -162,5 +158,5 @@ for item in circuits:
 
 # json file
 jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
-for_output=json.dumps(circuits2)
+for_output=dumps(circuits2)
 logfunc(now="", logloc=jsonloc, line=for_output)

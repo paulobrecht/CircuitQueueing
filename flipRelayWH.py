@@ -2,8 +2,8 @@
 
 # IMPORT
 import RPi.GPIO as gpio
-import time
-import sys
+from time import strftime, localtime
+from sys import argv
 import os
 from local_functions import logfunc
 
@@ -12,11 +12,11 @@ map = {0:"OFF", 1:"ON"}
 
 # log file
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
-now = time.strftime("%H:%M:%S", time.localtime())
+now = strftime("%H:%M:%S", localtime())
 
 # get command line arg (ON or OFF)
 try:
-  arg1 = sys.argv[1]
+  arg1 = argv[1]
 except IndexError:
   message="Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'"
   logfunc(logloc=logloc, line=message)

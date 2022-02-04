@@ -1,7 +1,10 @@
 activity_log.txt
-refreshToken.txt
+ecobee_activity_log.txt
 consumption_log.json
+
 accessToken.txt
+refreshToken.txt
+
 old/**
 logs/**
 4shortcuts/testing/**
