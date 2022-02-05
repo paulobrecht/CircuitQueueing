@@ -4,7 +4,7 @@ import os
 from time import mktime, localtime, asctime, sleep, strftime, strptime
 from sys import argv
 from subprocess import call
-from local_functions import logfunc, curbQuery, refreshEcobeeAuthToken, queryEcobee, postHold, resumeProgram, parseResponse, prowl, handleException
+from local_functions import logfunc, curbQuery, refreshEcobeeAuthToken, queryEcobee, postHold, resumeProgram, parseResponse, handleException
 
 # env variables
 CurbLocationID = os.environ["CURB_LOCATION_ID"]
@@ -21,8 +21,7 @@ def logShortcut (msg, hs):
 
   hs_map = {1: " >  ", 0: " <= "}
   hs2 = "HPN" + hs_map[hs] + "300"
-  myStr = str(asctime()) + ": " + hs2 + ", liveHoldFlag = " + str(liveHoldFlag) + ", messageFlag = " + str(messageFlag) + \
-  ", HPN = " + str(HPN) + ", HPS = " + str(HPS) + ", " + msg
+  myStr = hs2 + ", liveHoldFlag = " + str(liveHoldFlag) + ", messageFlag = " + str(messageFlag) + ", HPN = " + str(HPN) + ", HPS = " + str(HPS) + ", " + msg
   return myStr
 
 
@@ -76,25 +75,25 @@ while cont:
       try:
         jkey = refreshEcobeeAuthToken(refresh_token=RT)
         ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-        logfunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (1)", hs = hs))
+#        logfunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (1)", hs = hs))
       except Exception:
         handleException(msg="Problem refreshing Ecobee token (1) using refresh token in ecobeeOverride.py", logloc=logloc)
 
       # query thermostats to get necessary data fields
       try:
         temps, thermostatTime = queryEcobee(auth_token=ECOBEE_TOKEN)
-        logfunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
+#        logfunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
       except Exception:
         handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc)
 
-      # Run setHold function
+      # Run postHold function
       try:
         setHold, endEpoch, resultAPI = postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
-        logfunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
+#        logfunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
         if resultAPI[3] != 200:
-          logfunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response (" + str(resultAPI[3]) + ")", hs = hs))
+          logfunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
       except Exception:
-        handleException(msg="Problem with setHold in ecobeeOverride.py", logloc=logloc)
+        handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc)
 
       # log the override (if this is the first time through the loop with HPN on)
       if messageFlag == False:
@@ -107,11 +106,11 @@ while cont:
     else: # if HPN is on and liveHoldFlag is already True, there's no new news. Wait 30 or until expiry
       remainingHold = endEpoch - mktime(now)
       if remainingHold <= 30:
-        logfunc(logloc = logloc, line = logShortcut(msg="sleeping" + remainingHold, hs = hs))
-        sleep(remainingHold)
+#        logfunc(logloc = logloc, line = logShortcut(msg="sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
+        sleep(max(remainingHold - 3, 1))
         liveHoldFlag = False
       else:
-        logfunc(logloc = logloc, line = logShortcut(msg = "sleeping 30", hs = hs))
+ #       logfunc(logloc = logloc, line = logShortcut(msg = "sleeping 30", hs = hs) + ", remainingHold = " + str(remainingHold))
         sleep(29)
 
   else: # if HPN is not on (<= 300)
@@ -123,7 +122,7 @@ while cont:
       try:
         jkey = refreshEcobeeAuthToken(refresh_token=RT)
         ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-        logfunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
+  #      logfunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
       except Exception:
         handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc)
 
@@ -132,7 +131,7 @@ while cont:
         rP, resultAPI = resumeProgram(auth_token=ECOBEE_TOKEN)
         logfunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
         if resultAPI[3] != 200:
-          logfunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response (" + str(resultAPI[3]) + ")", hs = hs))
+          logfunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
       except Exception:
         handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc)
 
@@ -146,7 +145,7 @@ while cont:
       messageFlag = False
 
     else: # if HPN is off and no hold is currently active, there's no new news. Wait 60.
-      logfunc(logloc=logloc, line=logShortcut(msg = "sleeping 60", hs = hs))
+#      logfunc(logloc=logloc, line=logShortcut(msg = "sleeping 60", hs = hs))
       sleep(59)
 
   now = localtime()
