@@ -4,7 +4,7 @@ import os
 import RPi.GPIO as gpio
 from json import loads
 from requests import post
-from time import strftime
+from time import strftime, localtime
 from local_functions import logfunc
 
 # Access token request parameters
@@ -25,7 +25,7 @@ jkey = loads(key.text)
 AT = jkey["access_token"]
 
 # log file
-now = strftime("%H:%M:%S", \localtime())
+now = strftime("%H:%M:%S", localtime())
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
 
 # write AT to file for re-use (expires after 24 hours)

@@ -186,7 +186,7 @@ def queryEcobee(auth_token, includeSettings=True, includeEvents=False, headers={
 
 def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterval=240, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
   from requests import post
-  from time import mktime, localtime, strftime
+  from time import mktime, localtime, strftime, strptime
 
   tokenstr = "Bearer " + auth_token
   headers.update(Authorization = tokenstr)
@@ -233,7 +233,7 @@ def parseResponse(item):
   import inspect
   from json import loads
 
-  obj = json.loads(item.text)['status']
+  obj = loads(item.text)['status']
   statusCode = obj['code'] # 0 on success
   statusMessage = obj['message'] # "" on success
   statusCodeHTTP = item.status_code # 200 (possibly 2XX?) on success
@@ -258,11 +258,10 @@ def prowl(msg):
 
 
 def handleException(msg, logloc):
-  import inspect
   from time import asctime
+  import sys
   from local_functions import logfunc, prowl
 
-  caller = inspect.stack()[1].function
   logfunc(logloc=logloc, line="ERROR: " + msg + ". Exiting.") # write to log file
-  prowl(msg=caller + " has exited abnormally with '" + msg + "'") # send to prowl
-  raise Exception(asctime() + ": ERROR: " + msg + ". Exiting.") # raise descriptive exception
+  prowl(msg="Abnormal exit with '" + msg + "'") # send to prowl
+  sys.exit(asctime() + ": ERROR: " + msg + ". Exiting.") # exit and raise descriptive exception

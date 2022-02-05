@@ -34,7 +34,7 @@ usage, latest_json = curbQuery(locationID=locationID, apiURL=apiURL, AT=AT)
 
 if usage == "ERROR": # log it, send prowl alert, turn everything on, exit
   logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (1): " + str(latest_json)))
-  prowl(msg="./prowl.sh \'" + str(latest_json) + "\'")
+  prowl(msg=str(latest_json))
   gpio.output(WH_north,1)
   gpio.output(WH_south,1)
   gpio.output(ppump,1)
@@ -98,7 +98,7 @@ else:
 
     if usage2 == "ERROR": # log it, send prowl alert, turn everything on, exit
       logfunc(logloc=logloc, line=str("ERROR: Issues with Curb query (2): " + str(latest_json2)))
-      prowl(msg="./prowl.sh \'" + str(latest_json2) + "\'")
+      prowl(msg=str(latest_json2))
       gpio.output(WH_north,1)
       gpio.output(WH_south,1)
       gpio.output(ppump,1)
