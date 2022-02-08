@@ -1,155 +1,129 @@
 #!/usr/bin/python3
 
 import os
-from time import mktime, localtime, asctime, sleep, strftime, strptime
-from sys import argv
+import sys
+import time
+import local_functions as LF
 from subprocess import call
-from local_functions import logfunc, curbQuery, refreshEcobeeAuthToken, queryEcobee, postHold, resumeProgram, parseResponse, handleException
+from json import loads
 
 # env variables
 CurbLocationID = os.environ["CURB_LOCATION_ID"]
 CurbAPIurl = os.environ["CURB_API_URL"]
 CurbAT = os.environ["CURB_ACCESS_TOKEN"]
 RT = os.environ['ECOBEE_REFRESH_TOKEN']
+logloc = os.environ['ECOBEE_LOCAL_LOG_LOC']
+jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
 
-# logloc = os.environ['CURB_LOCAL_LOG_LOC']
-logloc = "/home/pi/CurbAPI/ecobee_activity_log.txt"
-
-# convenience function logShortcut
 def logShortcut (msg, hs):
-  from time import asctime 
+	hs_map = {1: " >  ", 0: " <= "}
+	hs2 = "HPN" + hs_map[hs] + "300"
+	myStr = "Curb = " + consTime + ", " + hs2 + ", liveHoldFlag = " + str(liveHoldFlag) + ", messageFlag = " + str(messageFlag) + \
+			", HPN = " + str(HPN) + ", HPS = " + str(HPS) + ", " + msg
+	return myStr
 
-  hs_map = {1: " >  ", 0: " <= "}
-  hs2 = "HPN" + hs_map[hs] + "300"
-  myStr = hs2 + ", liveHoldFlag = " + str(liveHoldFlag) + ", messageFlag = " + str(messageFlag) + ", HPN = " + str(HPN) + ", HPS = " + str(HPS) + ", " + msg
-  return myStr
-
-
-
-# it's impossible to kick this script off after midnight without a corrective argument
-if len(argv) > 1:
-  if argv[1] == "Yesterday":
-    tmp = mktime(localtime()) - 86400 # 24 hours ago
-    launchTime = localtime(tmp)
-  else:
-    raise Exception("Program argument must be 'Yesterday' or nothing at all.")
-else:
-  launchTime = localtime()
 
 # log program launch
-logfunc(logloc=logloc, line="ecobeeOverride launched")
+LF.logFunc(logloc=logloc, line="ecobeeOverride launched.")
 
-# time calculations
-launchDay = strftime("%Y-%m-%d", launchTime)
-launchDayMidnight = strptime(launchDay + " 00:00:00", "%Y-%m-%d %H:%M:%S")
+# list of high consumption circuits for use in loop
+hogs = ["Water Heater South", "Water Heater North", "Pool Pump 1", "Pool Pump 2", \
+		"Dryer 1", "Dryer 2", "Heat Pump North", "Sub Panel 1", "Sub Panel 2"]
 
-# this program runs once a day starting at 4:30 am
-# So loop until 4:30 and then exit
-
-now = localtime()
-nowDay = strftime("%Y-%m-%d", now)
-minsSinceLaunchDayMidnight = (mktime(now) - mktime(launchDayMidnight)) / 60
-
+# Initialize variables
 liveHoldFlag = False
 messageFlag = False
-cont = (nowDay == launchDay and 270 <= minsSinceLaunchDayMidnight < 1440) or (nowDay != launchDay and 1440 <= minsSinceLaunchDayMidnight < 1710)
+jsonErrors = 0
 
-while cont:
+while True:
 
-  # query curb for HPN (north heat pump) electricity consumption
-  try:
-    usage = curbQuery(locationID=CurbLocationID, apiURL=CurbAPIurl, AT=CurbAT)[0]
-    HPN = usage[4]
-    HPS = usage[3]
-    totalHogConsumption = sum(usage[0:3] + usage[4:]) # exclude HPS because that's the one we're overriding
-  except Exception:
-    handleException(msg="Problem with curbQuery() in ecobeeOverride.py", logloc=logloc)
+	# get consumption data from latest line in consumption_log.json
+	# or, failing that, query Curb directly
+	try:
+		usage = LF.readConsumptionJSON(jsonloc = jsonloc)
+		consTime = time.strftime("%H:%M:%S", time.localtime(usage["timestamp"]))
+		WHS, WHN, DRY, HPS, HPN, SUB, PP, totalHogConsumption = LF.curbUsage(usage)
+		jsonErrors = max(0, jsonErrors - 1)
+	except BaseException:
+		jsonErrors += 1
+		LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file. Trying to continue.")
+		if jsonErrors > 2:
+			sys.exit()
 
-  # if HPN is on and no hold is currently active, set an override hold on the ecobee for holdInterval (default=4) minutes
-  if HPN > 300 or totalHogConsumption > 10000:
+	# if HPN is on and no hold is currently active, set an override hold on the ecobee for holdInterval (default=4) minutes
+	if HPN > 300 or totalHogConsumption > 10000:
+		hs = 1
+		if liveHoldFlag == False:
 
-    hs = 1
-    if liveHoldFlag == False:
+			# update ecobee access token
+			try:
+				jkey = LF.refreshEcobeeAuthToken(refresh_token=RT)
+				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
+				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (1)", hs = hs))
+			except Exception:
+				LF.handleException(msg="Problem refreshing Ecobee token (1) using refresh token in ecobeeOverride.py", logloc=logloc)
 
-      # update ecobee access token
-      try:
-        jkey = refreshEcobeeAuthToken(refresh_token=RT)
-        ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-#        logfunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (1)", hs = hs))
-      except Exception:
-        handleException(msg="Problem refreshing Ecobee token (1) using refresh token in ecobeeOverride.py", logloc=logloc)
+			# query thermostats to get necessary data fields
+			try:
+				temps, thermostatTime = LF.queryEcobee(auth_token=ECOBEE_TOKEN)
+				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
+			except Exception:
+				LF.handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc)
 
-      # query thermostats to get necessary data fields
-      try:
-        temps, thermostatTime = queryEcobee(auth_token=ECOBEE_TOKEN)
-#        logfunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
-      except Exception:
-        handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc)
+			# Run postHold function
+			try:
+				setHold, endEpoch, resultAPI = postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
+				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
+				if resultAPI[3] != 200:
+				  LF.logFunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
+			except Exception:
+				LF.handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc)
 
-      # Run postHold function
-      try:
-        setHold, endEpoch, resultAPI = postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
-#        logfunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
-        if resultAPI[3] != 200:
-          logfunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
-      except Exception:
-        handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc)
+			# log the override (if this is the first time through the loop with HPN on)
+			if messageFlag == False:
+				LF.logFunc(logloc=logloc, line="North heat pump is running, setting an override hold on south heat pump")
+				messageFlag = True
 
-      # log the override (if this is the first time through the loop with HPN on)
-      if messageFlag == False:
-        logfunc(logloc=logloc, line="North heat pump is running, setting an override hold on south heat pump")
-        messageFlag = True
+			# set live hold flag to indicate active hold
+			liveHoldFlag = True
 
-      # set live hold flag to indicate active hold
-      liveHoldFlag = True
+		else: # if HPN is on and liveHoldFlag is already True, there's no new news. Wait 60 or until expiry
+			remainingHold = endEpoch - time.mktime(time.localtime())
+			if remainingHold < 60:
+				LF.logFunc(logloc = logloc, line = logShortcut(msg="sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
+				time.sleep(max(remainingHold - 3, 1))
+				liveHoldFlag = False
+			else:
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping 60", hs = hs) + ", remainingHold = " + str(remainingHold))
+				time.sleep(60)
 
-    else: # if HPN is on and liveHoldFlag is already True, there's no new news. Wait 30 or until expiry
-      remainingHold = endEpoch - mktime(now)
-      if remainingHold <= 30:
-#        logfunc(logloc = logloc, line = logShortcut(msg="sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
-        sleep(max(remainingHold - 3, 1))
-        liveHoldFlag = False
-      else:
- #       logfunc(logloc = logloc, line = logShortcut(msg = "sleeping 30", hs = hs) + ", remainingHold = " + str(remainingHold))
-        sleep(29)
+	else: # if HPN is not on (<= 300)
+		hs = 0
+		if liveHoldFlag == True: # if HPN is off but live hold flag is set, we are first detecting that HPN has ended. Resume program, set live hold flag to false.
 
-  else: # if HPN is not on (<= 300)
+			# update ecobee access token
+			try:
+				jkey = LF.refreshEcobeeAuthToken(refresh_token=RT)
+				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
+				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
+			except Exception:
+				LF.handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc)
 
-    hs = 0
-    if liveHoldFlag == True: # if HPN is off but live hold flag is set, we are first detecting that HPN has ended. Resume program, set live hold flag to false.
+			# resume program (cancel hold)
+			try:
+				rP, resultAPI = LF.resumeProgram(auth_token=ECOBEE_TOKEN)
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
+				if resultAPI[3] != 200:
+				  LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
+			except Exception:
+				LF.handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc)
 
-      # update ecobee access token
-      try:
-        jkey = refreshEcobeeAuthToken(refresh_token=RT)
-        ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-  #      logfunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
-      except Exception:
-        handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc)
+			# log the resumption (since is the first loop detecting cessation of HPN activity)
+			LF.logFunc(logloc=logloc, line="North heat pump no longer running, allowing south heat pump (ecobee) to resume program")
 
-      # resume program (cancel hold)
-      try:
-        rP, resultAPI = resumeProgram(auth_token=ECOBEE_TOKEN)
-        logfunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
-        if resultAPI[3] != 200:
-          logfunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
-      except Exception:
-        handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc)
+			liveHoldFlag = False # set live hold flag to indicate no active hold
+			messageFlag = False # set messageFlag to false so log message is written next time HPN kicks on
 
-      # log the resumption (since is the first loop detecting cessation of HPN activity)
-      logfunc(logloc=logloc, line="North heat pump no longer running, allowing south heat pump (ecobee) to resume program")
-
-      # set live hold flag to indicate no active hold
-      liveHoldFlag = False
-
-      # set messageFlag to false so log message is written next time HPN kicks on
-      messageFlag = False
-
-    else: # if HPN is off and no hold is currently active, there's no new news. Wait 60.
-#      logfunc(logloc=logloc, line=logShortcut(msg = "sleeping 60", hs = hs))
-      sleep(59)
-
-  now = localtime()
-  nowDay = strftime("%Y-%m-%d", now)
-  minsSinceLaunchDayMidnight = (mktime(now) - mktime(launchDayMidnight)) / 60
-  cont = (nowDay == launchDay and 270 <= minsSinceLaunchDayMidnight < 1440) or (nowDay != launchDay and 1440 <= minsSinceLaunchDayMidnight < 1710)
-
+		else: # if HPN is off and no hold is currently active, there's no new news. Wait 60.
+			LF.logFunc(logloc=logloc, line=logShortcut(msg = "sleeping 60", hs = hs))
+			time.sleep(60)

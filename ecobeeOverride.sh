@@ -3,14 +3,10 @@
 . $HOME/CurbAPI_profile
 
 # kill any running copies of ecobeeOverride.py
-tarm=`ps -fu pi | grep ecobeeOverride.py | grep -v "grep" | sed 's/  */ /g' | cut -f 2 -d " "`
+tmar=$(ps axf | grep ecobeeOverride.py | grep -v "grep" | grep -v "nano" | awk '{print $1}')
 for x in $tarm
 do
-  kill -3 $x
+  kill -9 $x
 done
 
-if [ "$#" == 1 ] && [ "$1" == "Yesterday" ]; then
-  exec /home/pi/CurbAPI/ecobeeOverride.py Yesterday &
-else
-  exec /home/pi/CurbAPI/ecobeeOverride.py &
-fi
+/home/pi/CurbAPI/ecobeeOverride.py &

@@ -1,7 +1,7 @@
 # URLs
 export CURB_TOKEN_URL="https://energycurb.auth0.com/oauth/token"
-export CURB_QUERY_AUDIENCE="app.energycurb.com/api"
 export CURB_API_URL="https://app.energycurb.com/api/v3/latest/"
+export CURB_QUERY_AUDIENCE="app.energycurb.com/api"
 
 # sensitive info
 export CURB_QUERY_USERNAME="<username>"
@@ -9,13 +9,19 @@ export CURB_QUERY_PASSWORD="<password>"
 export CURB_QUERY_CLIENT_ID="<client ID>"
 export CURB_QUERY_CLIENT_SECRET="<Client Secret>"
 export CURB_LOCATION_ID="<location ID>"
-export PROWL_API_KEY="<api key>"
+
+export PROWL_API_KEY="<prowl api key>"
+export ECOBEE_API_KEY="<ecobee api key>"
 
 # local file paths
 export CURB_LOCAL_LOG_LOC="$CIRCUITQUEUEING/activity_log.txt"
 export CURB_LOCAL_JSON_LOC="$CIRCUITQUEUEING/consumption_log.json"
 export CURB_ACCESS_TOKEN_LOC="$CIRCUITQUEUEING/accessToken.txt"
-export CURB_ACCESS_TOKEN=`cat $CURB_ACCESS_TOKEN_LOC`
+export ECOBEE_LOCAL_LOG_LOC="$CIRCUITQUEUEING/ecobee_activity_log.txt"
+export ECOBEE_REFRESH_TOKEN_LOC="$CIRCUITQUEUEING/refreshToken.txt"
+
+export CURB_ACCESS_TOKEN=$(cat $CURB_ACCESS_TOKEN_LOC)
+export ECOBEE_REFRESH_TOKEN=$(cat $ECOBEE_REFRESH_TOKEN_LOC)
 
 export OVERRIDE_FLAG_LOC="$HOME/CurbAPI/4shortcuts/override_flag"
 
