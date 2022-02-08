@@ -20,6 +20,49 @@ def logfunc(logloc, line, now = None):
 
 
 #################################
+# parse Curb data
+#################################
+
+def parseCurb(latest_json):
+  import os
+
+  CurbLocationID = os.environ["CURB_LOCATION_ID"]
+  CurbAPIurl = os.environ["CURB_API_URL"]
+  CurbAT = os.environ["CURB_ACCESS_TOKEN"]
+
+  # outer dict
+  stuff_keys = ["timestamp", "consumption", "production", "net"]
+  stuff = {key: latest_json[key] for key in stuff_keys}
+
+  print(stuff)
+  print("\n")
+
+  circuits2 = {}
+  for key in stuff_keys:
+    circuits2[key] = stuff[key]
+
+  print(circuits2)
+
+  # inner dict
+  circuits = latest_json["circuits"]
+
+  print(circuits)
+
+  i=1
+  for item in circuits:
+    try:
+      newk = item["id"]
+    except KeyError:
+      label = "Orphan " + str(i)
+      circuits2[label] = item["w"]
+      i += 1
+    else:
+      circuits2[item["label"]] = item["w"]
+
+  return circuits2
+
+
+#################################
 # Curb query (get usage)
 #################################
 
@@ -38,6 +81,7 @@ def curbQuery(locationID, apiURL, AT):
 
   # parse latest usage data ("log" is defined in calling script)
   latest_json = loads(latest.text)
+
   try:
     circuits = latest_json["circuits"]
   except BaseException as err:
@@ -229,7 +273,7 @@ def resumeProgram(auth_token, headers={'content-type': 'application/json', 'char
 # parse ecobee API response json
 #################################
 
-def parseResponse(item):
+def parseEcoBeeResponse(item):
   import inspect
   from json import loads
 
@@ -258,10 +302,11 @@ def prowl(msg):
 
 
 def handleException(msg, logloc):
-  from time import asctime
   import sys
+  import subprocess
+  from time import sleep
   from local_functions import logfunc, prowl
-
   logfunc(logloc=logloc, line="ERROR: " + msg + ". Exiting.") # write to log file
-  prowl(msg="Abnormal exit with '" + msg + "'") # send to prowl
-  sys.exit(asctime() + ": ERROR: " + msg + ". Exiting.") # exit and raise descriptive exception
+  prowl(msg="Abnormal exit with \'" + msg + "\'") # send to prowl
+  sleep(30)
+#  subprocess.run("./ecobeeOverride.sh")
