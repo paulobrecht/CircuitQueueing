@@ -1,29 +1,20 @@
-# import os because a default function arg in some ecobee functions requires os.environ
+# import os because a default function arg in some functions requires os.environ
 import os
 
-#################################
-# Write line to log file, default with timestamp
-#################################
-
-def logFunc(logloc, line, now = None):
-  from time import strftime, localtime
-
-  log = open(logloc, "a")
-  if now is None:
-    now = strftime("%H:%M:%S", localtime())
-    log.write(now + ": " + line + "\n")
-  elif now  == "":
-    log.write(line + "\n")
-  else:
-    log.write(now + ": " + line + "\n")
-  log.close()
+######################################################################################################################
+#                                             C U R B    F U N C T I O N S                                           #
+######################################################################################################################
 
 
-#################################
-# parse Curb data
-#################################
+
+
 
 def parseCurb(latest_json):
+  """parse JSON data from Curb query
+
+  Extended
+  """
+
   import os
 
   CurbLocationID = os.environ["CURB_LOCATION_ID"]
@@ -32,92 +23,103 @@ def parseCurb(latest_json):
 
   # outer dict
   stuff_keys = ["timestamp", "consumption", "production", "net"]
-  stuff = {key: latest_json[key] for key in stuff_keys}
 
-  circuits2 = {}
-  for key in stuff_keys:
-    circuits2[key] = stuff[key]
+  try:
+    stuff = {key: latest_json[key] for key in stuff_keys}
 
-  # inner dict
-  circuits = latest_json["circuits"]
+  except KeyError:
+    circuits2 = {} # if what's pulled down doesn't have these keys, likely a Curb server issue
+    pass
 
-  i=1
-  for item in circuits:
-    try:
-      newk = item["id"]
-    except KeyError:
-      label = "Orphan " + str(i)
-      circuits2[label] = item["w"]
-      i += 1
-    else:
-      circuits2[item["label"]] = item["w"]
+  else:
+    circuits2 = {}
+    for key in stuff_keys:
+      circuits2[key] = stuff[key]
+
+    # inner dict
+    circuits = latest_json["circuits"]
+
+    i=1
+    for item in circuits:
+      try:
+        newk = item["id"]
+      except KeyError:
+        label = "Orphan " + str(i)
+        circuits2[label] = item["w"]
+        i += 1
+      else:
+        circuits2[item["label"]] = item["w"]
 
   return circuits2
 
 
-#################################
-# Curb query (get usage)
-#################################
 
-def curbQuery(locationID, apiURL, AT):
 
-  from json import loads
-  from requests import get
+def newCurbQuery(locationID=os.environ["CURB_LOCATION_ID"], apiURL=os.environ["CURB_API_URL"], AT=os.environ["CURB_ACCESS_TOKEN"]):
+  """HTTP GET request to Curb server, which is parsed to flatten the JSON structure
+
+  Extended
+  """
+
   import os
+  from json import loads, dumps
+  from requests import get
 
-  # get latest usage data using daily token
-  Lurl = apiURL + locationID
-  bearer_string = 'Bearer ' + AT
-  headers = {'authorization': bearer_string, 'Keep-Alive': 'timeout=110, max=10'}
-  latest = get(Lurl, headers=headers)
-  latest.close()
-
-  # parse latest usage data ("log" is defined in calling script)
+  # get latest usage data using daily token, then parse
+  latest = get(apiURL + locationID, headers = {'authorization': 'Bearer ' + AT})
   latest_json = loads(latest.text)
+  parsed = parseCurb(latest_json)
 
-  try:
-    circuits = latest_json["circuits"]
-  except BaseException as err:
-    message = str(err) + " ---  " + str(type(err)) + " --- " + latest.text
-    outval = ["ERROR", message]
-  else:
-    length = len(circuits)
-    for i in range(length):
-      this_circuit = circuits[i]
-      if "label" in this_circuit.keys():
-        this_label = this_circuit["label"]
-        if this_label.upper() == "WATER HEATER SOUTH":
-          WHS = this_circuit["w"]
-        elif this_label.upper() == "WATER HEATER NORTH":
-          WHN = this_circuit["w"]
-        elif this_label.upper() == "DRYER 1":
-          DRY1 = this_circuit["w"]
-        elif this_label.upper() == "DRYER 2":
-          DRY2 = this_circuit["w"]
-        elif this_label.upper() == "HEAT PUMP SOUTH":
-          HPS = this_circuit["w"]
-        elif this_label.upper() == "HEAT PUMP NORTH":
-          HPN = this_circuit["w"]
-        elif this_label.upper() == "SUB PANEL 1":
-          SUB1 = this_circuit["w"]
-        elif this_label.upper() == "SUB PANEL 2":
-          SUB2 = this_circuit["w"]
-        elif this_label.upper() == "POOL PUMP 1":
-          PP1 = this_circuit["w"]
-        elif this_label.upper() == "POOL PUMP 2":
-          PP2 = this_circuit["w"]
-    SUB = SUB1 + SUB2
-    DRY = DRY1 + DRY2
-    PP = PP1 + PP2
-    usage_tuple = (WHS, WHN, DRY, HPS, HPN, SUB, PP)
-    outval = [usage_tuple, latest_json]
-  return outval
+  return parsed
 
 
-#################################
-# Get ecobee pin
-#################################
+
+
+def curbUsage(cons):
+  """Extract and calculate the device usage for the devices of interest
+
+  Extended
+  """
+
+  from time import strftime, localtime
+
+  consTime = strftime("%H:%M:%S", localtime(cons["timestamp"]))
+  cons_keys = ["Heat Pump North", "Heat Pump South", "Water Heater North", "Water Heater South", \
+               "Pool Pump 1", "Pool Pump 2", "Sub Panel 1", "Sub Panel 2", "Dryer 1", "Dryer 2"]
+
+  # hogs does not include HPS, since that's the one we might be odeciding whether to override
+  hogs = cons_keys[:1] + cons_keys[2:]
+
+  cons2 = {key: cons[key] for key in cons_keys}
+  HPN, HPS, WHN, WHS, PP1, PP2, SUB1, SUB2, DRY1, DRY2 = cons2.values()
+
+  SUB = SUB1 + SUB2
+  DRY = DRY1 + DRY2
+  PP = PP1 + PP2
+  totalHogConsumption = sum([cons[x] for x in hogs])
+
+  return (WHS, WHN, DRY, HPS, HPN, SUB, PP, totalHogConsumption)
+
+
+
+
+######################################################################################################################
+#                                         E C O B E E    F U N C T I O N S                                           #
+######################################################################################################################
+
+
+
+
 def getEcobeePin(key=os.environ['ECOBEE_API_KEY'], headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+  """Get ecobee pin
+
+  Sample call:
+  jpin = getEcobeePin()
+  ECOBEE_PIN, ECOBEE_PIN_CODE, ECOBEE_PIN_INTERVAL, ECOBEE_PIN_EXPIRY, ECOBEE_PIN_SCOPE = jpin.values()
+
+  Extended
+  """
+
   from json import loads
   from requests import get
 
@@ -126,15 +128,21 @@ def getEcobeePin(key=os.environ['ECOBEE_API_KEY'], headers={'content-type': 'app
   jpin = loads(pin.text)
   return jpin
 
-# jpin = getEcobeePin()
-# ECOBEE_PIN, ECOBEE_PIN_CODE, ECOBEE_PIN_INTERVAL, ECOBEE_PIN_EXPIRY, ECOBEE_PIN_SCOPE = jpin.values()
 
 
-#################################
-# Get ecobee auth token (using pin)
-#################################
 
 def getEcobeeAuthToken(pin, key=os.environ['ECOBEE_API_KEY'], headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+  """Get ecobee auth token (using pin)
+
+  Sample call:
+  jkey = getEcobeeAuthToken(pin=ECOBEE_PIN, key=os.environ['ECOBEE_API_KEY'])
+  ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2, ECOBEE_REFRESH_TOKEN = jkey.values()
+
+  First: User must manually logging into Ecobee website and authorizing the app using the PIN generated by getEcobeePin()
+
+  Extended
+  """
+
   from json import loads
   from requests import post
   from local_functions import logFunc
@@ -165,15 +173,19 @@ def getEcobeeAuthToken(pin, key=os.environ['ECOBEE_API_KEY'], headers={'content-
 
   return jkey
 
-# jkey = getEcobeeAuthToken(pin=ECOBEE_PIN, key=os.environ['ECOBEE_API_KEY'])
-# ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2, ECOBEE_REFRESH_TOKEN = jkey.values()
 
 
-#################################
-# Refresh ecobee auth token (using refresh token)
-#################################
 
 def refreshEcobeeAuthToken(refresh_token, key=os.environ['ECOBEE_API_KEY'], headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+  """Refresh ecobee auth token (using refresh token)
+
+  Sample call:
+  jkey = refreshEcobeeAuthToken(refresh_token=os.environ['ECOBEE_REFRESH_TOKEN'])
+  ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
+
+  Extended
+  """
+
   from requests import post
   from json import loads
 
@@ -182,16 +194,16 @@ def refreshEcobeeAuthToken(refresh_token, key=os.environ['ECOBEE_API_KEY'], head
   jkey = loads(response.text)
   return jkey
 
-# jkey = refreshEcobeeAuthToken(refresh_token=os.environ['ECOBEE_REFRESH_TOKEN'])
-# ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
 
 
 
-#################################
-# ecobee /thermostat query
-#################################
 
 def queryEcobee(auth_token, includeSettings=True, includeEvents=False, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+  """ecobee /thermostat query
+
+  Extended
+  """
+
   from json import loads
   from requests import get
 
@@ -217,11 +229,14 @@ def queryEcobee(auth_token, includeSettings=True, includeEvents=False, headers={
     return tstat
 
 
-#################################
-# ecobee post hold
-#################################
+
 
 def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterval=240, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+  """HTTP POST request to set a hold on the thermostat
+
+  Extended
+  """
+
   from requests import post
   from time import mktime, localtime, strftime, strptime
 
@@ -239,15 +254,18 @@ def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterv
   setHoldJSON = {'selection': setHoldSelection, 'functions':[{'type':'setHold', 'params':setHoldParams}, {"type":"sendMessage","params":msgParams}]}
 
   setHold = post('https://api.ecobee.com/1/thermostat', headers=headers, json=setHoldJSON)
-  resultAPI = parseResponse(setHold)
+  resultAPI = parseEcobeeResponse(setHold)
   return setHold, endEpoch, resultAPI
 
 
-#################################
-# ecobee resume program (end hold)
-#################################
+
 
 def resumeProgram(auth_token, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+  """ecobee resume program (end hold)
+
+  Extended
+  """
+
   from requests import post
 
   tokenstr = "Bearer " + auth_token
@@ -258,15 +276,18 @@ def resumeProgram(auth_token, headers={'content-type': 'application/json', 'char
   msgParams = {"text": "Other heat pump has finished. Resuming schedule."}
   rP_json = {'selection': rP_Selection, 'functions':[{'type':'resumeProgram','params':rP_Params},{"type":"sendMessage","params":msgParams}]}
   rP = post('https://api.ecobee.com/1/thermostat', headers=headers, json=rP_json)
-  resultAPI = parseResponse(rP)
+  resultAPI = parseEcobeeResponse(rP)
   return rP, resultAPI
 
 
-#################################
-# parse ecobee API response json
-#################################
 
-def parseEcoBeeResponse(item):
+
+def parseEcobeeResponse(item):
+  """parse ecobee API response json
+
+  Extended
+  """
+
   import inspect
   from json import loads
 
@@ -281,96 +302,78 @@ def parseEcoBeeResponse(item):
   return parseObj
 
 
-#################################
-# convenience functions
-#################################
+
+
+######################################################################################################################
+#                                   G E N E R A L    U T I L I T Y    F U N C T I O N S                              #
+######################################################################################################################
+
+
+
+
+def logFunc(logloc, line, now = None):
+  """Write line to log file, default with timestamp
+
+  Extended
+  """
+
+  from time import strftime, localtime
+
+  log = open(logloc, "a")
+  if now is None:
+    now = strftime("%H:%M:%S", localtime())
+    log.write(now + ": " + line + "\n")
+  elif now  == "":
+    log.write(line + "\n")
+  else:
+    log.write(now + ": " + line + "\n")
+  log.close()
+
+
+
 
 def prowl(msg):
+  """Send a prowl notification using prowl API
+
+  Extended
+  """
+
   import subprocess
   import inspect
-  caller = inspect.stack()[1].function
-  execList = ["./prowl.sh", str("\'ERROR: " + msg + "\'"), caller]
+
+  caller = inspect.stack()[2].function
+  execList = ["./prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'")]
   output = subprocess.run(execList, capture_output = True)
   xmlobj = output.stdout.decode("utf-8")
+  return xmlobj
+
+
 
 
 def handleException(msg, logloc):
+  """Generic exception handler (logs error, sends a prowl notification, calls sys.exit())
+
+  Extended
+  """
+
   import sys
-  import subprocess
-#  from time import sleep
+
   from local_functions import logFunc, prowl
   logFunc(logloc=logloc, line="ERROR: " + msg + ". Exiting.") # write to log file
   prowl(msg="Abnormal exit with \'" + msg + "\'") # send to prowl
   sys.exit("ERROR: " + msg + ". Exiting.")
-#  sleep(30)
-#  subprocess.run("./ecobeeOverride.sh")
-
-##############################################
-# newCurbQuery
-##############################################
-
-def newCurbQuery(locationID=os.environ["CURB_LOCATION_ID"], apiURL=os.environ["CURB_API_URL"], AT=os.environ["CURB_ACCESS_TOKEN"]):
-
-  import os
-  from json import loads, dumps
-  from requests import get
-
-  # get latest usage data using daily token, then parse
-  latest = get(apiURL + locationID, headers = {'authorization': 'Bearer ' + AT})
-  latest_json = loads(latest.text)
-  parsed = parseCurbQuery(latest_json)
-
-  return parsed
 
 
-##############################################
-# parseCurbQuery
-##############################################
 
-def parseCurbQuery(latest_json):
-
-  # modules
-  import os
-  from time import strftime, localtime
-  from json import dumps
-  from local_functions import logFunc, curbQuery
-
-  # Variables
-  logloc = os.environ['CURB_LOCAL_LOG_LOC']
-  jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
-
-  # Parse and flatten response JSON into dict
-  # outer dict
-  stuff_keys = ["timestamp", "consumption", "production", "net"]
-  stuff = {key: latest_json[key] for key in stuff_keys}
-
-  circuits2 = {}
-  for key in stuff_keys:
-    circuits2[key] = stuff[key]
-
-  # inner dict
-  circuits = latest_json["circuits"]
-
-  i=1
-  for item in circuits:
-    try:
-      newk = item["id"]
-    except KeyError:
-      label = "Orphan " + str(i)
-      circuits2[label] = item["w"]
-      i += 1
-    else:
-      circuits2[item["label"]] = item["w"]
-
-  return circuits2
-
-
-##############################################
-# readConsumptionJSON
-##############################################
 
 def readConsumptionJSON(jsonloc):
+  """Read the JSON file generated by fetchCurbData.py
+
+  Extended
+  """
+
   from json import loads
+
   with open(jsonloc) as file:
     for line in file:
       pass
@@ -378,54 +381,95 @@ def readConsumptionJSON(jsonloc):
   return cons
 
 
-##############################################
-# curbUsage
-##############################################
-
-def curbUsage(cons):
-  from time import strftime, localtime
-  consTime = strftime("%H:%M:%S", localtime(cons["timestamp"]))
-
-  cons_keys = ["Heat Pump North", "Heat Pump South", "Water Heater North", "Water Heater South", \
-               "Pool Pump 1", "Pool Pump 2", "Sub Panel 1", "Sub Panel 2", "Dryer 1", "Dryer 2"]
-
-  # hogs does not include HPS, since that's the one we might be odeciding whether to override
-  hogs = cons_keys[:1] + cons_keys[2:]
-
-  cons2 = {key: cons[key] for key in cons_keys}
-  HPN, HPS, WHN, WHS, PP1, PP2, SUB1, SUB2, DRY1, DRY2 = cons2.values()
-
-  SUB = SUB1 + SUB2
-  DRY = DRY1 + DRY2
-  PP = PP1 + PP2
-  totalHogConsumption = sum([cons[x] for x in hogs])
-  return (WHS, WHN, DRY, HPS, HPN, SUB, PP, totalHogConsumption)
 
 
-##############################################
-# mappings for GPIO stuff
-##############################################
+def isOn(device_name, device_usage):
+  """Define whether a device is running or not
+
+  Extended
+  """
+
+  import sys
+
+  thresh = {"HPN": 300, "HPS": 300, "DRY": 100, "SUB_hi": 3000, "SUB_lo": 1000, "WHN": 500, "WHS": 500}
+
+  if device_name == "SUB":
+    if device_usage > thresh["SUB_hi"]:
+      status = 2 # On
+    elif device_usage > thresh["SUB_lo"]:
+      status = 1 # On kinda
+    else:
+      status = 0 # OFF
+
+  elif device_name in ["HPN", "HPS", "DRY", "WHN", "WHS"]:
+    if device_usage > thresh[device_name]:
+      status = 1 # ON
+    else:
+      status = 0 # OFF
+
+  else:
+    sys.exit("device_name must be one of HPN, HPS, DRY, SUB, WHN, WHS")
+
+  return status
+
+
+
+
+def l2s(se):
+  """Convience function to change [0, 1] to "OFF->ON"
+
+  Extended
+  """
+
+  initial = LF.gpioMaps()[1][se[0]]
+  end = LF.gpioMaps()[1][se[1]]
+
+  return str(initial) + "->" + str(end)
+
+
+
+
+######################################################################################################################
+#                                             G P I O    F U N C T I O N S                                           #
+######################################################################################################################
+
+
+
+
 def gpioMaps():
+  """mappings for GPIO stuff
+
+  Extended
+  """
+
   map1 = {"WH_north":11, "WH_south":13, "ppump":15}
   map2 = {0:"OFF", 1:"ON"}
   return [map1, map2]
 
 
-##############################################
-# GPIO setup
-##############################################
+
+
 def gpioSetup(gpio_map = gpioMaps()[0]):
+  """GPIO setup
+
+  Extended
+  """
+
   import RPi.GPIO as gpio
+
   gpio.setmode(gpio.BOARD)
   gpio.setwarnings(False)
   for x in [gpio_map[x] for x in gpio_map]:
     gpio.setup(x, gpio.OUT)
 
 
-##############################################
-# Check GPIO status
-##############################################
+
+
 def gpioCheckStatus(device_list, gpio_map = gpioMaps()[0]):
+  """Check GPIO status
+
+  Extended
+  """
 
   import RPi.GPIO as gpio
   gpioSetup()
@@ -441,42 +485,23 @@ def gpioCheckStatus(device_list, gpio_map = gpioMaps()[0]):
 
   # output device/status dict
   my_dict = {k:v for k,v in zip(device_list, status)}
+
   return my_dict
 
-##############################################
-# Set GPIO status
-##############################################
+
+
+
 def gpioSetStatus(status_dict, gpio_map = gpioMaps()[0]):
+  """Set GPIO status
+
+  Extended
+  """
+
   import RPi.GPIO as gpio
+
   for key in status_dict.keys():
     gpio.output(gpio_map[key], status_dict[key])
 
 
-##############################################
-# Define whether a device is running or not
-##############################################
 
-def isOn(device_name, device_usage):
 
-  import sys
-
-  thresh = {"HPN": 300, "HPS": 300, "DRY": 100, "SUB_hi": 3000, "SUB_lo": 1000, "WHN": 500, "WHS": 500}
-
-  if device_name == "SUB":
-    if device_usage > thresh["SUB_hi"]:
-      status = 1 # On
-    elif device_usage > thresh["SUB_lo"]:
-      status = 2 # On kinda
-    else:
-      status = 0 # OFF
-
-  elif device_name in ["HPN", "HPS", "DRY", "SUB", "WHN", "WHS"]:
-    if device_usage > thresh[device_name]:
-      status = True # ON
-    else:
-      status = False # OFF
-
-  else:
-    sys.exit("device_name must be one of HPN, HPS, DRY, SUB, WHN, WHS")
-
-  return status

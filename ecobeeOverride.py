@@ -15,16 +15,16 @@ RT = os.environ['ECOBEE_REFRESH_TOKEN']
 logloc = os.environ['ECOBEE_LOCAL_LOG_LOC']
 jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
 
-def logShortcut (msg, hs):
-	hs_map = {1: " >  ", 0: " <= "}
-	hs2 = "HPN" + hs_map[hs] + "300"
+
+def logShortcut (msg, hs): # just needed for verbose logging while working out kinks, bugs, etc.
+	hs2 = "HPN " + hs
 	myStr = "Curb = " + consTime + ", " + hs2 + ", liveHoldFlag = " + str(liveHoldFlag) + ", messageFlag = " + str(messageFlag) + \
 			", HPN = " + str(HPN) + ", HPS = " + str(HPS) + ", " + msg
 	return myStr
 
 
 # log program launch
-LF.logFunc(logloc=logloc, line="ecobeeOverride launched.")
+LF.logFunc(logloc=logloc, line="ecobeeOverride launched")
 
 # list of high consumption circuits for use in loop
 hogs = ["Water Heater South", "Water Heater North", "Pool Pump 1", "Pool Pump 2", \
@@ -38,7 +38,6 @@ jsonErrors = 0
 while True:
 
 	# get consumption data from latest line in consumption_log.json
-	# or, failing that, query Curb directly
 	try:
 		usage = LF.readConsumptionJSON(jsonloc = jsonloc)
 		consTime = time.strftime("%H:%M:%S", time.localtime(usage["timestamp"]))
@@ -48,11 +47,20 @@ while True:
 		jsonErrors += 1
 		LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file. Trying to continue.")
 		if jsonErrors > 2:
-			sys.exit()
+			sys.exit("Too many errors in a row reading/parsing consumption JSON file. I give up.")
 
-	# if HPN is on and no hold is currently active, set an override hold on the ecobee for holdInterval (default=4) minutes
-	if HPN > 300 or totalHogConsumption > 10000:
-		hs = 1
+	# if certain conditions, set an override hold on the ecobee for holdInterval (default=4) minutes
+	# conditions: HPN is on, Kitchen usage is very high, total hog consumption is > 8000, or dryer is on
+	if LF.isOn("HPN", HPN) or LF.isOn("SUB", SUB) == 2 or totalHogConsumption > 8000 or LF.isOn("DRY", DRY):
+
+		# Why do we fire?
+		hpn_on = int(LF.isOn("HPN", HPN) == 1)
+		sub_on = int(LF.isOn("SUB", SUB) == 2)
+		dry_on = int(LF.isOn("DRY", DRY) == 1):
+		hog_on = int(totalHogConsumption > 8000)
+		reason = sum([1000 * hpn_on, 100 * sub_on, 10 * dry_on, hog_on])
+
+		hs = "ON"
 		if liveHoldFlag == False:
 
 			# update ecobee access token
@@ -72,7 +80,7 @@ while True:
 
 			# Run postHold function
 			try:
-				setHold, endEpoch, resultAPI = postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
+				setHold, endEpoch, resultAPI = LF.postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
 				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
 				if resultAPI[3] != 200:
 				  LF.logFunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
@@ -81,7 +89,7 @@ while True:
 
 			# log the override (if this is the first time through the loop with HPN on)
 			if messageFlag == False:
-				LF.logFunc(logloc=logloc, line="North heat pump is running, setting an override hold on south heat pump")
+				LF.logFunc(logloc=logloc, line="Setting an override hold on south heat pump (reason " + reason)
 				messageFlag = True
 
 			# set live hold flag to indicate active hold
@@ -98,7 +106,7 @@ while True:
 				time.sleep(60)
 
 	else: # if HPN is not on (<= 300)
-		hs = 0
+		hs = "OFF"
 		if liveHoldFlag == True: # if HPN is off but live hold flag is set, we are first detecting that HPN has ended. Resume program, set live hold flag to false.
 
 			# update ecobee access token
