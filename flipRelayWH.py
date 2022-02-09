@@ -1,66 +1,54 @@
 #!/usr/bin/python3
 
 # IMPORT
+import os
 import RPi.GPIO as gpio
+import local_functions as LF
 from time import strftime, localtime
 from sys import argv
-import os
-from local_functions import logfunc
-
-# mapping 0/1 to OFF/ON
-map = {0:"OFF", 1:"ON"}
 
 # log file
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
-now = strftime("%H:%M:%S", localtime())
+
+
+# to map ON/OFF to 1/0 from gpioMaps(), which goes the other way
+def get_key(val):
+    for key, value in gpioMaps()[1].items():
+         if val == value:
+             return key
+
 
 # get command line arg (ON or OFF)
 try:
   arg1 = argv[1]
 except IndexError:
-  message="Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'"
-  logfunc(logloc=logloc, line=message)
+  logFunc(logloc = logloc, line = "Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'")
 else:
   arg1 = arg1.upper() # case-insensitive
   if arg1 not in ["OFF", "ON"]:
-    message = "ERROR. Provided invocation argument " + arg1 + " is invalid. Specify only OFF or ON."
-    logfunc(logloc=logloc, line=message)
-  else:
-    flip = (arg1=="ON") * 1
+    logFunc(logloc = logloc, line = "ERROR. Provided invocation argument " + arg1 + " is invalid. Specify only OFF or ON.")
 
-# Assign GPIO pins for each water heater
-# (we don't flip pool pump in this program)
-WH_north = 11
-WH_south = 13
+# GPIO setup
+LF.gpioSetup()
 
-# Set mode to BOARD to refer to Pi pin numbers
-gpio.setwarnings(False)
-gpio.setmode(gpio.BOARD)
-
-# Set two pins (one for each device) as output
-gpio.setup(WH_north,gpio.OUT)
-gpio.setup(WH_south,gpio.OUT)
-
-# get current WH status
-WHN_status = [gpio.input(WH_north)]
-WHS_status = [gpio.input(WH_south)]
+# start list for each device that will be [before, after]
+initial_dict = LF.gpioCheckStatus(["WH_north", "WH_south"])
+WHN_status = [initial_dict["WH_north"]]
+WHS_status = [initial_dict["WH_south"]]
+PP_status  = [initial_dict["ppump"]]
 
 # flip relay to off or on depending on command line arg supplied to script on crontab
 # When turning OFF, turn both off. When turning on, turn on only North pump -- queryCurb will turn everything else on if North doesn't need to run right now
-if flip == 1:
-  gpio.output(WH_north,1)
-  gpio.output(WH_south,0)
-elif flip == 0:
-  gpio.output(WH_north,0)
-  gpio.output(WH_south,0)
+if arg1 == "ON":
+  LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 1, "ppump": 1})
+elif arg1 == "OFF":
+  LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0})
+
+# second item of each device status list
+end_dict = LF.gpioCheckStatus(["WH_north", "WH_south", "ppump"])
+WHN_status.append(end_dict["WH_north"])
+WHS_status.append(end_dict["WH_south"])
+PP_status.append(end_dict["ppump"])
 
 # log action
-WHN_status.append(gpio.input(WH_north))
-WHS_status.append(gpio.input(WH_south))
-
-a = "->"
-N = [map[WHN_status[0]], map[WHN_status[1]]]
-S = [map[WHS_status[0]], map[WHS_status[1]]]
-
-message = "flipRelayWH changed status. North: " + N[0] + a + N[1] + ", South: " + S[0] + a + S[1] 
-logfunc(logloc=logloc, line=message)
+LF.logFunc(logloc=logloc, line="flipRelayWH changed status. North: " + l2s(WHN_status) + ", South: " + l2s(WHN_status))

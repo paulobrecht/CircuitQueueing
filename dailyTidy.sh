@@ -48,8 +48,15 @@ echo ""                                                         >> ${fn3}
 echo "${dt2}: Archived yesterday's file, starting a fresh one." >> ${fn3}
 echo ""                                                         >> ${fn3}
 
-# compress archives
+# compress yesterday's archived files
 for i in {1..3};
 do
   echo $(eval gzip \${arch_fn$i})
 done
+
+# copy crontab to CurbAPI/crontab.txt for backup/version control
+# but omit headers
+
+gzip ${rootdir}/crontab.txt
+mv ${rootdir}/crontab.txt.gz ${rootdir}/old_crontabs/crontab_${dt1}.txt.gz
+echo "$(crontab -l | grep -v ^\#)" > crontab.txt

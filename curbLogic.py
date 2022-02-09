@@ -34,8 +34,8 @@ WHS_status = [initial_dict["WH_south"]] # start list that will be [before, after
 PP_status  = [initial_dict["ppump"]] # start list that will be [before, after]
 
 # status_message starts with lag indicator if there's a lag
-status_message = "Curb: " + strftime("%H:%M:%S", localtime(first_json_timestamp))
-if data_lag > 120:
+status_message = "Curb: " + strftime("%H:%M:%S", localtime(first_json_timestamp)) + ", "
+if data_lag > 240:
 	status_message += "(Data lag " + str(data_lag) + "s) "
 
 # Decide whether and what to override
@@ -47,6 +47,14 @@ elif LF.isOn("DRY", DRY): # if dryer is on, turn both water heaters and pool pum
 	status_message += "Dryer running (" + str(DRY) + " w), turning off both water heaters and pool pump."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0, "ppump": 0})
 
+elif LF.isOn("SUB", SUB) == 2: # if kitchen consumption is really high, turn both water heaters and pool pump off
+	status_message += "Kitchen consumption very high (" + str(SUB) + " w), turning off both water heaters and pool pump."
+	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0, "ppump": 0})
+
+elif LF.isOn("SUB", SUB) == 1: # if kitchen consumption is only kinda high, turn just water heaters off
+	status_message += "Kitchen consumption high (" + str(SUB) + " w), turning off both water heaters."
+	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0, "ppump": 1})
+
 # if one water heater is on, turn the other and pool pump off -- prioritize north because more showers are there
 elif LF.isOn("WHN", WHN):
 	status_message += "North water heater on (" + str(WHN) + " w), turning off south water heater and pool pump."
@@ -56,48 +64,10 @@ elif LF.isOn("WHS", WHS):
 	status_message += "South water heater on (" + str(WHS) + " w), turning off north water heater and pool pump."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 1, "ppump": 0})
 
-elif LF.isOn("SUB", SUB) == 2: # if kitchen consumption is really high, turn both water heaters and pool pump off
-	status_message += "Kitchen consumption very high (" + str(SUB) + " w), turning off both water heaters and pool pump."
-	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0, "ppump": 0})
-
-elif LF.isOn("SUB", SUB) == 1: # if kitchen consumption is only kinda high, turn just water heaters off, don't force pool pump either way
-	status_message += "Kitchen consumption high (" + str(SUB) + " w), turning off both water heaters."
-	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0})
-
 else:
-
-	# if nothing was overridden before, and nothing is overridden now.
-	if (WHN_status[0], WHS_status[0], PP_status[0]) == (1, 1, 1):
-		pass
-
-	# if something was overriden before, but now nothing is, then turn on water heaters and check again in 45 s
-	else:
-		status_message += "No other devices running, allowing "
-		LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 1})
-
-		sleep(45)
-		usage2 = LF.readConsumptionJSON(jsonloc)
-		WHS2, WHN2, DRY2, HPS2, HPN2, SUB2, PP2, totalHogConsumption2 = LF.curbUsage(usage2)
-
-		if LF.isOn("WHN", WHN2):
-			LF.gpioSetStatus(status_dict = {"WH_south": 0, "ppump": 0})
-			status_message += "north water heater (" + str(WHN2) + ") to run."
-
-		elif LF.isOn("WHS", WHS2):
-			LF.gpioSetStatus(status_dict = {"WH_north": 0, "ppump": 0})
-			status_message += "south water heater (" + str(WHS2) + ") to run."
-
-		else:
-			LF.gpioSetStatus(status_dict = {"ppump": 1})
-			status_message += "water heaters and pool pump (" + str(WHN2) + ", " + str(WHS2) + ", " + str(PP2) + ") to run."
-
-		if usage["timestamp"] == first_json_timestamp:
-			status_message += "(2nd json time = 1st)"
-
-		# update HPS, HPN, PP using these new values for log file
-		HPN = HPN2
-		HPS = HPS2
-		PP = PP2
+	status_message += "No other devices running, allowing water heaters and pool pump (" + \
+	                   str(WHN) + " w, " + str(WHS) + " w, " + str(PP) + " w) to run."
+	LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 1, "ppump": 1})
 
 end_dict = LF.gpioCheckStatus(["WH_north", "WH_south", "ppump"])
 WHN_status.append(end_dict["WH_north"])

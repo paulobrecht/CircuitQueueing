@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import os
-from local_functions import newCurbQuery, parseCurbQuery, handleException, logFunc
+from local_functions import newCurbQuery, parseCurb, handleException, logFunc
 from json import dumps
 
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
