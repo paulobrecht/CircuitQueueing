@@ -22,17 +22,17 @@ def get_key(val):
 try:
   arg1 = argv[1]
 except IndexError:
-  logFunc(logloc = logloc, line = "Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'")
+  LF.logFunc(logloc = logloc, line = "Usage: 'python3 flipRelayWH.py OFF' or 'python3 flipRelayWH.py ON'")
 else:
   arg1 = arg1.upper() # case-insensitive
   if arg1 not in ["OFF", "ON"]:
-    logFunc(logloc = logloc, line = "ERROR. Provided invocation argument " + arg1 + " is invalid. Specify only OFF or ON.")
+    LF.logFunc(logloc = logloc, line = "ERROR. Provided invocation argument " + arg1 + " is invalid. Specify only OFF or ON.")
 
 # GPIO setup
 LF.gpioSetup()
 
 # start list for each device that will be [before, after]
-initial_dict = LF.gpioCheckStatus(["WH_north", "WH_south"])
+initial_dict = LF.gpioCheckStatus(["WH_north", "WH_south", "ppump"])
 WHN_status = [initial_dict["WH_north"]]
 WHS_status = [initial_dict["WH_south"]]
 PP_status  = [initial_dict["ppump"]]
@@ -51,4 +51,4 @@ WHS_status.append(end_dict["WH_south"])
 PP_status.append(end_dict["ppump"])
 
 # log action
-LF.logFunc(logloc=logloc, line="flipRelayWH changed status. North: " + l2s(WHN_status) + ", South: " + l2s(WHN_status))
+LF.logFunc(logloc=logloc, line="flipRelayWH changed status. North: " + LF.l2s(WHN_status) + ", South: " + LF.l2s(WHN_status))

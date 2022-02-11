@@ -84,6 +84,6 @@ if any_change:
 	status_add = " WHN:" + l2s(WHN_status) + " WHS:" + l2s(WHS_status) + " PP:" + l2s(PP_status)
 	status_message += status_add
 	LF.logFunc(logloc=logloc, line=status_message)
-else:
+elif (WHN_status, WHS_status, PP_status) != ([1, 1], [1, 1], [1, 1]):
 	tmp = {"HPN": HPN, "HPS": HPS, "WHN": WHN, "WHS": WHS, "DRY": DRY, "SUB": SUB, "PP": PP, "status N,S,PP": (WHN_status, WHS_status, PP_status)}
 	LF.logFunc(logloc=logloc, line="No changes. " + dumps(tmp))

@@ -56,7 +56,7 @@ while True:
 		# Why do we fire?
 		hpn_on = int(LF.isOn("HPN", HPN) == 1)
 		sub_on = int(LF.isOn("SUB", SUB) == 2)
-		dry_on = int(LF.isOn("DRY", DRY) == 1):
+		dry_on = int(LF.isOn("DRY", DRY) == 1)
 		hog_on = int(totalHogConsumption > 8000)
 		reason = sum([1000 * hpn_on, 100 * sub_on, 10 * dry_on, hog_on])
 
@@ -89,7 +89,7 @@ while True:
 
 			# log the override (if this is the first time through the loop with HPN on)
 			if messageFlag == False:
-				LF.logFunc(logloc=logloc, line="Setting an override hold on south heat pump (reason " + reason)
+				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
 				messageFlag = True
 
 			# set live hold flag to indicate active hold
@@ -133,5 +133,4 @@ while True:
 			messageFlag = False # set messageFlag to false so log message is written next time HPN kicks on
 
 		else: # if HPN is off and no hold is currently active, there's no new news. Wait 60.
-			LF.logFunc(logloc=logloc, line=logShortcut(msg = "sleeping 60", hs = hs))
 			time.sleep(60)

@@ -11,4 +11,9 @@
 
 # if ecobeeOverride.py is already running then don't launch it
 ncop=$(ps -fA | grep ecobeeOverride.py | grep "/usr/bin/python3 /home/pi/CurbAPI/ecobeeOverride.py" | grep -v grep | wc -l)
-[ $ncop -eq 0 ] && exec /home/pi/CurbAPI/ecobeeOverride.py &
+if [[ $ncop -eq 0 ]]; then
+  exec /home/pi/CurbAPI/ecobeeOverride.py &
+else 
+  echo "ecobeeOverride.py is already running. Kill that one before launching another."
+  exit 1
+fi

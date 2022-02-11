@@ -421,6 +421,8 @@ def l2s(se):
   Extended
   """
 
+  import local_functions as LF
+
   initial = LF.gpioMaps()[1][se[0]]
   end = LF.gpioMaps()[1][se[1]]
 
