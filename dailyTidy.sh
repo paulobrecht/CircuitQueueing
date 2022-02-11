@@ -55,8 +55,16 @@ do
 done
 
 # copy crontab to CurbAPI/crontab.txt for backup/version control
-# but omit headers
+# but omit headers, but only when it changes
+main="${rootdir}/crontab.txt"
+copy="${rootdir}/old_crontabs/crontab" # no file extension
 
-gzip ${rootdir}/crontab.txt
-mv ${rootdir}/crontab.txt.gz ${rootdir}/old_crontabs/crontab_${dt1}.txt.gz
-echo "$(crontab -l | grep -v ^\#)" > crontab.txt
+echo "$(crontab -l | grep -v ^\#)" > tmp
+change=$(diff tmp $main | wc -l)
+if [[ $change != 0 ]]; then
+  mv $main ${copy}_${dt1}.txt
+  gzip ${copy}_${dt1}.txt
+  mv tmp $main
+else
+  rm -f tmp
+fi

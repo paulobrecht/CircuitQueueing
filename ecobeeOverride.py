@@ -12,7 +12,7 @@ CurbLocationID = os.environ["CURB_LOCATION_ID"]
 CurbAPIurl = os.environ["CURB_API_URL"]
 CurbAT = os.environ["CURB_ACCESS_TOKEN"]
 RT = os.environ['ECOBEE_REFRESH_TOKEN']
-logloc = os.environ['ECOBEE_LOCAL_LOG_LOC']
+logloc = os.environ['CURB_LOCAL_LOG_LOC']
 jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
 
 
@@ -67,21 +67,21 @@ while True:
 			try:
 				jkey = LF.refreshEcobeeAuthToken(refresh_token=RT)
 				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (1)", hs = hs))
+#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (1)", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem refreshing Ecobee token (1) using refresh token in ecobeeOverride.py", logloc=logloc)
 
 			# query thermostats to get necessary data fields
 			try:
 				temps, thermostatTime = LF.queryEcobee(auth_token=ECOBEE_TOKEN)
-				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
+#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc)
 
 			# Run postHold function
 			try:
 				setHold, endEpoch, resultAPI = LF.postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
-				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
+#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
 				if resultAPI[3] != 200:
 				  LF.logFunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
@@ -98,11 +98,11 @@ while True:
 		else: # if HPN is on and liveHoldFlag is already True, there's no new news. Wait 60 or until expiry
 			remainingHold = endEpoch - time.mktime(time.localtime())
 			if remainingHold < 60:
-				LF.logFunc(logloc = logloc, line = logShortcut(msg="sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
+#				LF.logFunc(logloc = logloc, line = logShortcut(msg="sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(max(remainingHold - 3, 1))
 				liveHoldFlag = False
 			else:
-				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping 60", hs = hs) + ", remainingHold = " + str(remainingHold))
+#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping 60", hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(60)
 
 	else: # if HPN is not on (<= 300)
@@ -113,14 +113,14 @@ while True:
 			try:
 				jkey = LF.refreshEcobeeAuthToken(refresh_token=RT)
 				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
+#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc)
 
 			# resume program (cancel hold)
 			try:
 				rP, resultAPI = LF.resumeProgram(auth_token=ECOBEE_TOKEN)
-				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
+#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
 				if resultAPI[3] != 200:
 				  LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
