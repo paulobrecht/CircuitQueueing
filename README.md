@@ -2,9 +2,9 @@
 
 A solar energy efficiency project using Curb home energy monitoring, a raspberry pi, the ecobee API, and some relays in the electrical panel. The project forces large household appliances into a priority hierarchy, forcing them to run one or two at a time, and preventing some from running at night and high rate electrical utility hours.
 
-## The main idea is this:
+## The main idea:
 
-A Raspberry pi and solid state relays in the electrical panel can turn on or off the two water heaters and/or the pool pump by interrupting the current at the breaker. The python scripts for this logic are all executed by cron. Cron actually launches an associated .sh file, which in turn launches the .py script.
+A Raspberry pi and solid state relays in the electrical panel can turn on or off the two water heaters and/or the pool pump by interrupting the current at the breaker. The python scripts for this logic are all executed by cron. Cron usually launches an associated .sh file, which in turn launches the .py script.
 
 + `crontab.txt`... a dump of the crontab, performed in `dailyTidy.sh`
 + `getAccessToken.py`... the Curb API access token has to be refreshed daily.
@@ -15,6 +15,9 @@ A Raspberry pi and solid state relays in the electrical panel can turn on or off
 + `flipRelayWH.sh`... Flips all the relays either ON or OFF with a command-line argument. Used here only with OFF to override all devices at peak rate times and overnight.
 + `prowl.sh`... used to fire a prowl alert under certain circumstances
 + `4shortcuts`... this houses scripts that I can fire from my phone using the iOS Shortcuts app to override the queueing jobs.
+
+    The override script is executed once daily by cron as well. From 5 am to 6 am, all devices are allowed to run freely, to ensure that we have both hot water for showers and a warm house at 6 am to start the day.
+    
 + `CurbAPI_profile` bash env variables to store values used by all the scripts. The true file is stored outside this directory because it contains secret keys, etc. This is a copy that anonymizes the sensitive values.
 
 There's also a component that uses the ecobee API to put a temperature hold on one heat pump if certain conditions met. The script that controls that process is `ecobeeOverride.py`.
