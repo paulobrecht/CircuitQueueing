@@ -19,7 +19,7 @@ A Raspberry pi and solid state relays in the electrical panel can turn on or off
 
 There's also a component that uses the ecobee API to put a temperature hold on one heat pump if certain conditions met. The script that controls that process is `ecobeeOverride.py`.
 
-So the complete list of devices that enter into this process are:
+The complete list of devices that enter into this process are:
 
 1. The kitchen subpanel, which contains the electic ovens, the electric cooktop, fridge/freezer, microwave, dishwasher, etc.
 2. The two water heaters
