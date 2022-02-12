@@ -21,7 +21,7 @@ There's also a component that uses the ecobee API to put a temperature hold on o
 
 The complete list of devices that enter into this process are:
 
-1. The kitchen subpanel, which contains the electic ovens, the electric cooktop, fridge/freezer, microwave, dishwasher, etc.
+1. The kitchen subpanel, which contains the electric ovens, the electric range, fridge/freezer, microwave, dishwasher, etc.
 2. The two water heaters
 3. The two heat pumps; one is "smart," and one is dumb
 4. The pool pump
