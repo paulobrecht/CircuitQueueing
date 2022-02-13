@@ -42,7 +42,7 @@ PP_status  = [initial_dict["ppump"]]
 if arg1 == "ON":
   LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 1, "ppump": 1})
 elif arg1 == "OFF":
-  LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0})
+  LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0}) # don't override pool pump at night... it should run if scheduled
 
 # second item of each device status list
 end_dict = LF.gpioCheckStatus(["WH_north", "WH_south", "ppump"])
