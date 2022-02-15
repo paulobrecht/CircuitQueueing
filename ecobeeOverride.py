@@ -51,11 +51,11 @@ while True:
 
 	# if certain conditions, set an override hold on the ecobee for holdInterval (default=4) minutes
 	# conditions: HPN is on, Kitchen usage is very high, total hog consumption is > 8000, or dryer is on
-	if LF.isOn("HPN", HPN) or LF.isOn("SUB", SUB) == 2 or totalHogConsumption > 8000 or LF.isOn("DRY", DRY):
+	if LF.isOn("HPN", HPN, threshold) or LF.isOn("SUB", SUB, threshold) or totalHogConsumption > 8000 or LF.isOn("DRY", DRY, threshold):
 
 		# Why do we fire?
 		hpn_on = int(LF.isOn("HPN", HPN) == 1)
-		sub_on = int(LF.isOn("SUB", SUB) == 2)
+		sub_on = int(LF.isOn("SUB", SUB) == 1)
 		dry_on = int(LF.isOn("DRY", DRY) == 1)
 		hog_on = int(totalHogConsumption > 8000)
 		reason = sum([1000 * hpn_on, 100 * sub_on, 10 * dry_on, hog_on])
