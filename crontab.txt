@@ -5,7 +5,6 @@ MAILTO=pi
 
 @reboot            /home/pi/CurbAPI/ecobeeOverride.sh            # at reboot, start ecobeeOverride.sh
 00   00    * * *   /home/pi/CurbAPI/dailyTidy.sh                 # every day, zip/stash old log and start new
-00   05    * * 1-5 /home/pi/CurbAPI/4shortcuts/override.sh ON 59 # let everything run from 5-6 on weekdays
 00   06    * * 1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF           # off from 6-9 am (winter, weekdays)
 00   18    * * 1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF           # off from 6-9 pm (winter, weekdays)
 00   23    * * *   /home/pi/CurbAPI/flipRelayWH.sh OFF           # off for the night at 11:00 pm

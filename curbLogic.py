@@ -23,10 +23,6 @@ except BaseException:
 	LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file.")
 	sys.exit()
 
-# Thresholds for each device
-thresholds = {"HPN": 300, "HPS": 300, "DRY": 100, "SUB": 3000, "WHN": 500, "WHS": 500}
-
-
 ############
 # Curb Logic
 ############
@@ -43,24 +39,24 @@ if data_lag > 240:
 	status_message += "(Data lag " + str(data_lag) + "s) "
 
 # Decide whether and what to override
-if LF.isOn("HPS", HPS, thresholds) or LF.("HPN", HPN, thresholds): # if either heat pump is on, turn both water heaters and pool pump off
+if LF.isOn("HPS", HPS) or LF.isOn("HPN", HPN): # if either heat pump is on, turn both water heaters and pool pump off
 	status_message += "Heat pump(s) on (" + str(HPN) + "w and " + str(HPS) + "w), turning off both water heaters and pool pump."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0, "ppump": 0})
 
-elif LF.isOn("DRY", DRY, thresholds): # if dryer is on, turn both water heaters and pool pump off
+elif LF.isOn("DRY", DRY): # if dryer is on, turn both water heaters and pool pump off
 	status_message += "Dryer running (" + str(DRY) + " w), turning off both water heaters and pool pump."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0, "ppump": 0})
 
-elif LF.isOn("SUB", SUB, thresholds): # if kitchen consumption is really high, turn both water heaters and pool pump off
+elif LF.isOn("SUB", SUB): # if kitchen consumption is really high, turn both water heaters and pool pump off
 	status_message += "Kitchen consumption very high (" + str(SUB) + " w), turning off both water heaters and pool pump."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0, "ppump": 0})
 
 # if one water heater is on, turn the other and pool pump off -- prioritize north because more showers are there
-elif LF.isOn("WHN", WHN, thresholds):
+elif LF.isOn("WHN", WHN):
 	status_message += "North water heater on (" + str(WHN) + " w), turning off south water heater and pool pump."
 	LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 0, "ppump": 0})
 
-elif LF.isOn("WHS", WHS, thresholds):
+elif LF.isOn("WHS", WHS):
 	status_message += "South water heater on (" + str(WHS) + " w), turning off north water heater and pool pump."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 1, "ppump": 0})
 

@@ -383,13 +383,13 @@ def readConsumptionJSON(jsonloc):
 
 
 
-def isOn(device_name, device_usage, thresh):
+def isOn(device_name, device_usage):
   """Define whether a device is running or not
 
   Extended
   """
 
-  import sys
+  thresh = {"HPN": 300, "HPS": 300, "DRY": 100, "SUB": 3000, "WHN": 500, "WHS": 500}
 
   if device_usage > thresh[device_name]:
     status = 1 # ON

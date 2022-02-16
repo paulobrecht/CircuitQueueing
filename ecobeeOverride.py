@@ -51,7 +51,7 @@ while True:
 
 	# if certain conditions, set an override hold on the ecobee for holdInterval (default=4) minutes
 	# conditions: HPN is on, Kitchen usage is very high, total hog consumption is > 8000, or dryer is on
-	if LF.isOn("HPN", HPN, threshold) or LF.isOn("SUB", SUB, threshold) or totalHogConsumption > 8000 or LF.isOn("DRY", DRY, threshold):
+	if LF.isOn("HPN", HPN) or LF.isOn("SUB", SUB) or totalHogConsumption > 8000 or LF.isOn("DRY", DRY):
 
 		# Why do we fire?
 		hpn_on = int(LF.isOn("HPN", HPN) == 1)
@@ -87,7 +87,7 @@ while True:
 			except Exception:
 				LF.handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc)
 
-			# log the override (if this is the first time through the loop with HPN on)
+			# log the override (if this is the first time xough the loop with HPN on)
 			if messageFlag == False:
 				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
 				messageFlag = True
