@@ -250,8 +250,7 @@ def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterv
   endTime = strftime("%H:%M:%S", end)
   setHoldSelection = {'selectionType':'registered','selectionMatch':''}
   setHoldParams = {'holdType':'dateTime', 'endDate':endDate, 'endTime':endTime,'heatHoldTemp':heatRangeLow,'coolHoldTemp':coolRangeHigh}
-  msgParams = {"text": "On hold, waiting for other heat pump to finish."}
-  setHoldJSON = {'selection': setHoldSelection, 'functions':[{'type':'setHold', 'params':setHoldParams}, {"type":"sendMessage","params":msgParams}]}
+  setHoldJSON = {'selection': setHoldSelection, 'functions':[{'type':'setHold', 'params':setHoldParams}, {"type":"sendMessage"}]}
 
   setHold = post('https://api.ecobee.com/1/thermostat', headers=headers, json=setHoldJSON)
   resultAPI = parseEcobeeResponse(setHold)
