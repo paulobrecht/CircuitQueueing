@@ -250,7 +250,7 @@ def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterv
   endTime = strftime("%H:%M:%S", end)
   setHoldSelection = {'selectionType':'registered','selectionMatch':''}
   setHoldParams = {'holdType':'dateTime', 'endDate':endDate, 'endTime':endTime,'heatHoldTemp':heatRangeLow,'coolHoldTemp':coolRangeHigh}
-  setHoldJSON = {'selection': setHoldSelection, 'functions':[{'type':'setHold', 'params':setHoldParams}, {"type":"sendMessage"}]}
+  setHoldJSON = {'selection': setHoldSelection, 'functions':[{'type':'setHold', 'params':setHoldParams}]}
 
   setHold = post('https://api.ecobee.com/1/thermostat', headers=headers, json=setHoldJSON)
   resultAPI = parseEcobeeResponse(setHold)
@@ -272,8 +272,7 @@ def resumeProgram(auth_token, headers={'content-type': 'application/json', 'char
 
   rP_Selection = {'selectionType':'registered','selectionMatch':''}
   rP_Params = {"resumeAll":"false"}
-  msgParams = {"text": "Other heat pump has finished. Resuming schedule."}
-  rP_json = {'selection': rP_Selection, 'functions':[{'type':'resumeProgram','params':rP_Params},{"type":"sendMessage","params":msgParams}]}
+  rP_json = {'selection': rP_Selection, 'functions':[{'type':'resumeProgram','params':rP_Params},{"type":"sendMessage"}]}
   rP = post('https://api.ecobee.com/1/thermostat', headers=headers, json=rP_json)
   resultAPI = parseEcobeeResponse(rP)
   return rP, resultAPI

@@ -37,7 +37,7 @@ jsonErrors = 0
 
 while True:
 
-	# get consumption data from latest line in consumption_log.json
+	# get consumption data from latest line in consumption_log.json, error out if too many failures
 	try:
 		usage = LF.readConsumptionJSON(jsonloc = jsonloc)
 		consTime = time.strftime("%H:%M:%S", time.localtime(usage["timestamp"]))
@@ -46,7 +46,7 @@ while True:
 	except BaseException:
 		jsonErrors += 1
 		LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file. Trying to continue.")
-		if jsonErrors > 2:
+		if jsonErrors > 4:
 			sys.exit("Too many errors in a row reading/parsing consumption JSON file. I give up.")
 
 	# if certain conditions, set an override hold on the ecobee for holdInterval (default=4) minutes
@@ -79,21 +79,24 @@ while True:
 				LF.handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc)
 
 			# Run postHold function
+			resultCode = "GOOD"
 			try:
 				setHold, endEpoch, resultAPI = LF.postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
 #				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
 				if resultAPI[3] != 200:
-				  LF.logFunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
+					resultCode = "BAD"
+					LF.logFunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc)
 
-			# log the override (if this is the first time xough the loop with HPN on)
-			if messageFlag == False:
+			# log the override (if this is the first time through the loop with HPN on), but only if it worked
+			if resultCode == "GOOD" and messageFlag == False:
 				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
 				messageFlag = True
 
-			# set live hold flag to indicate active hold
+			# set live hold flag to indicate active hold and reset resultCode
 			liveHoldFlag = True
+			resultCode == "GOOD"
 
 		else: # if HPN is on and liveHoldFlag is already True, there's no new news. Wait 60 or until expiry
 			remainingHold = endEpoch - time.mktime(time.localtime())
@@ -113,24 +116,26 @@ while True:
 			try:
 				jkey = LF.refreshEcobeeAuthToken(refresh_token=RT)
 				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
+				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc)
 
 			# resume program (cancel hold)
+			resultCode = "GOOD"
 			try:
 				rP, resultAPI = LF.resumeProgram(auth_token=ECOBEE_TOKEN)
-#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
 				if resultAPI[3] != 200:
-				  LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
+					resultCode = "BAD"
+					LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc)
 
-			# log the resumption (since is the first loop detecting cessation of HPN activity)
-			LF.logFunc(logloc=logloc, line="North heat pump no longer running, allowing south heat pump (ecobee) to resume program")
-
-			liveHoldFlag = False # set live hold flag to indicate no active hold
-			messageFlag = False # set messageFlag to false so log message is written next time HPN kicks on
+			# log the resumption (since is the first loop detecting cessation of HPN activity), but only if it worked
+			if resultCode == "GOOD":
+				LF.logFunc(logloc=logloc, line="North heat pump no longer running, allowing south heat pump (ecobee) to resume program")
+				liveHoldFlag = False # set live hold flag to indicate no active hold
+				messageFlag = False # set messageFlag to false so log message is written next time HPN kicks on
 
 		else: # if HPN is off and no hold is currently active, there's no new news. Wait 60.
 			time.sleep(60)
