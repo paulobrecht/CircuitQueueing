@@ -35,12 +35,13 @@ LF.gpioSetup()
 initial_dict = LF.gpioCheckStatus(["WH_north", "WH_south", "ppump"])
 WHN_status = [initial_dict["WH_north"]]
 WHS_status = [initial_dict["WH_south"]]
-PP_status  = [initial_dict["ppump"]]
+# PP_status  = [initial_dict["ppump"]]
 
 # flip relay to off or on depending on command line arg supplied to script on crontab
 # When turning OFF, turn both off. When turning on, turn on only North pump -- queryCurb will turn everything else on if North doesn't need to run right now
 if arg1 == "ON":
-  LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 1, "ppump": 1})
+#  LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 1, "ppump": 1})
+  LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 0})
 elif arg1 == "OFF":
   LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0}) # don't override pool pump at night... it should run if scheduled
 
@@ -48,7 +49,7 @@ elif arg1 == "OFF":
 end_dict = LF.gpioCheckStatus(["WH_north", "WH_south", "ppump"])
 WHN_status.append(end_dict["WH_north"])
 WHS_status.append(end_dict["WH_south"])
-PP_status.append(end_dict["ppump"])
+# PP_status.append(end_dict["ppump"])
 
 # log action
 LF.logFunc(logloc=logloc, line="flipRelayWH changed status. North: " + LF.l2s(WHN_status) + ", South: " + LF.l2s(WHN_status))

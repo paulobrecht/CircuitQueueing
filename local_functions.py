@@ -272,7 +272,7 @@ def resumeProgram(auth_token, headers={'content-type': 'application/json', 'char
 
   rP_Selection = {'selectionType':'registered','selectionMatch':''}
   rP_Params = {"resumeAll":"false"}
-  rP_json = {'selection': rP_Selection, 'functions':[{'type':'resumeProgram','params':rP_Params},{"type":"sendMessage"}]}
+  rP_json = {'selection': rP_Selection, 'functions':[{'type':'resumeProgram','params':rP_Params}]}
   rP = post('https://api.ecobee.com/1/thermostat', headers=headers, json=rP_json)
   resultAPI = parseEcobeeResponse(rP)
   return rP, resultAPI
