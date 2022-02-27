@@ -93,7 +93,7 @@ while True:
 
 			# log the override (if this is the first time through the loop with HPN on), but only if it worked
 			if resultCode == "GOOD" and messageFlag == False:
-				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
+#				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
 				messageFlag = True
 
 			# set live hold flag to indicate active hold and reset resultCode
@@ -118,7 +118,7 @@ while True:
 			try:
 				jkey = LF.refreshEcobeeAuthToken(refresh_token=RT)
 				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
-				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
+#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc)
 
