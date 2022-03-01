@@ -93,7 +93,7 @@ while True:
 
 			# log the override (if this is the first time through the loop with HPN on), but only if it worked
 			if resultCode == "GOOD" and messageFlag == False:
-#				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
+				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
 				messageFlag = True
 
 			# set live hold flag to indicate active hold and reset resultCode
@@ -126,7 +126,7 @@ while True:
 			resultCode = "GOOD"
 			try:
 				rP, resultAPI = LF.resumeProgram(auth_token=ECOBEE_TOKEN)
-				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
+#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())

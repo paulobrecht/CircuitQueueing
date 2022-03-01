@@ -87,6 +87,9 @@ for status in [WHN_status, WHS_status]:
 	change = int(status[1] != status[0])
 	any_change += change
 
+# for now, just always set pool pump to on
+LF.gpioSetStatus(status_dict = {"ppump": 1})
+
 if any_change:
 #	status_add = " WHN:" + l2s(WHN_status) + " WHS:" + l2s(WHS_status) + " PP:" + l2s(PP_status)
 	status_add = " WHN:" + l2s(WHN_status) + " WHS:" + l2s(WHS_status)

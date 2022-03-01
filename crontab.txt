@@ -4,6 +4,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/home/pi/CurbA
 MAILTO=pi
 
 @reboot            /home/pi/CurbAPI/ecobeeOverride.sh            # at reboot, start ecobeeOverride.sh
+@reboot            /home/pi/repeatGet.sh                         # at reboot, start repeatGet.sh
 00   00    * * *   /home/pi/CurbAPI/dailyTidy.sh                 # every day, zip/stash old log and start new
 00   05    * * 1-5 /home/pi/CurbAPI/4shortcuts/override.sh ON 59 # let everything run from 5-6 on weekdays
 00   06    * * 1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF           # off from 6-9 am (winter, weekdays)

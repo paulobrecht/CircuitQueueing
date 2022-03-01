@@ -30,12 +30,12 @@ echo ""                                                         >> ${fn1}
 
 # make new consumption log file
 touch ${fn2}
-echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
-echo "Consumption Log File for ${dt3}"                          >> ${fn2}
-echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
-echo ""                                                         >> ${fn2}
-echo "${dt2}: Archived yesterday's file, starting a fresh one." >> ${fn2}
-echo ""                                                         >> ${fn2}
+# echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
+# echo "Consumption Log File for ${dt3}"                          >> ${fn2}
+# echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
+# echo ""                                                         >> ${fn2}
+# echo "${dt2}: Archived yesterday's file, starting a fresh one." >> ${fn2}
+# echo ""                                                         >> ${fn2}
 
 # copy crontab to CurbAPI/crontab.txt (omit headers)
 # for backup/version control, but only when it changes

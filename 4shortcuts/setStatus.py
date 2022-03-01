@@ -4,8 +4,7 @@
 import RPi.GPIO as gpio
 import sys
 
-# mapping 0/1 to OFF/ON
-map = {0:"OFF", 1:"ON"}
+# mapping OFF/ON to 0/1
 unmap = {"OFF":0, "ON":1}
 
 arg = sys.argv[1]
