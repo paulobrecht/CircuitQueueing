@@ -340,7 +340,7 @@ def prowl(msg):
   import inspect
 
   caller = inspect.stack()[2].function
-  execList = ["./prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'")]
+  execList = ["${CURB_DIR}/prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'")]
   output = subprocess.run(execList, capture_output = True)
   xmlobj = output.stdout.decode("utf-8")
   return xmlobj
