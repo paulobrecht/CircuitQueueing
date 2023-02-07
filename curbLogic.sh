@@ -14,18 +14,15 @@ me=`basename $0`
 if [ -f $override_flag ]; then
   . "${override_flag}"
   # if it is past the $end timestamp, the file should be gone but something happened. Delete it and run with supplied ON/OFF
-  if [ ${now} -ge ${end} ]; then
+  if [ ${now} -gt ${end} ]; then
     rm -f "${override_flag}"
-	  /usr/bin/python3 /home/pi/CurbAPI/curbLogic.py
+	/usr/bin/python3 /home/pi/CurbAPI/curbLogic.py
     logFunc $me "Manual override flag present but expired. Deleting flag and operating as normal"
     exit
-  else # override still in effect, so wait until override is over (+1 extra minute) and then continue
-    timeToWait=$((${end}-${now}+60))
-    logFunc $me "Manual override flag present, waiting ${timeToWait} seconds"
-    sleep ${timeToWait}s
-    logFunc $me "Done waiting, operating as normal"
-    /usr/bin/python3 /home/pi/CurbAPI/curbLogic.py
+  else # override still in effect, so exit... every launched curbLogic.sh will exit until override flag is removed or expired
+    exit
   fi
 else # no override in effect, so execute as normal
   /usr/bin/python3 /home/pi/CurbAPI/curbLogic.py
 fi
+
