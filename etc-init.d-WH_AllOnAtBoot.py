@@ -15,7 +15,7 @@ import RPi.GPIO as gpio
 # Write line to log file, default with timestamp
 #################################
 
-def logFunc(logloc="/home/pi/CurbAPI/activity_log.txt", line, now = None):
+def logFunc(line, logloc = "/home/pi/CurbAPI/activity_log.txt", now = None):
   from time import strftime, localtime
   log = open(logloc, "a")
   now = strftime("%H:%M:%S", localtime())
@@ -23,16 +23,14 @@ def logFunc(logloc="/home/pi/CurbAPI/activity_log.txt", line, now = None):
   log.close()
 
 # Water heater GPIO setup
-WH_north, WH_south, ppump = [11, 13, 15] # board pins
+WH_north, WH_south = [11, 13] # board pins
 gpio.setmode(gpio.BOARD)
 gpio.setwarnings(False)
 gpio.setup(WH_north,gpio.OUT)
 gpio.setup(WH_south,gpio.OUT)
-gpio.setup(ppump,gpio.OUT)
 
 # Turn on all at bootup
 gpio.output(WH_north,1)
 gpio.output(WH_south,1)
-gpio.output(ppump,1)
 
-logfunc("pi-wh.lan rebooted. Restarting now with (1, 1, 1)")
+logfunc(line = "pi-wh.lan rebooted. Restarting now with (1, 1)")

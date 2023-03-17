@@ -3,18 +3,7 @@ SHELL=/bin/bash
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/home/pi/CurbAPI
 MAILTO=pi
 
-@reboot            /home/pi/CurbAPI/ecobeeOverride.sh            # at reboot, start ecobeeOverride.sh
 00   00    * * *   /home/pi/CurbAPI/dailyTidy.sh                 # every day, zip/stash old log and start new
-00   05    * * 1-5 /home/pi/CurbAPI/4shortcuts/override.sh ON 59 # let everything run from 5-6 on weekdays
-00   06    * * 1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF           # off from 6-9 am (winter, weekdays)
-00   18    * * 1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF           # off from 6-9 pm (winter, weekdays)
-00   23    * * *   /home/pi/CurbAPI/flipRelayWH.sh OFF           # off for the night at 11:00 pm
 59   23    * * *   /home/pi/CurbAPI/getAccessToken.sh            # get new Curb token every night at 11:59 pm
 
 */1  *     * * *   /home/pi/CurbAPI/fetchCurbData.sh             # Fetch Curb data every minute every day 24-7, no override
-*/1  5     * * *   /home/pi/CurbAPI/curbLogic.sh                 # every minute from 5:00 am to 5:59 am
-*/1  6-8   * * 6-7 /home/pi/CurbAPI/curbLogic.sh                 # no peak auto-off on weekends, so query Sat Sun peak too
-*/1  9-17  * * *   /home/pi/CurbAPI/curbLogic.sh                 # every minute from 9:00 am to 5:59 pm
-*/1  18-20 * * 6-7 /home/pi/CurbAPI/curbLogic.sh                 # no peak auto-off on weekends, so query Sat Sun peak too
-*/1  21-22 * * *   /home/pi/CurbAPI/curbLogic.sh                 # every minute from 9:00 pm to 10:59 pm
-*/10 *     * * *   /home/pi/CurbAPI/ecobeeOverride.sh            # run every 10 minutes (script exits if it's already running)

@@ -9,7 +9,6 @@ get.txt
 accessToken.txt
 refreshToken.txt
 
-old/**
 logs/**
 4shortcuts/testing/**
 4shortcuts/override_flag
