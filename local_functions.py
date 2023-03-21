@@ -428,7 +428,7 @@ def gpioMaps():
   Extended
   """
 
-  map1 = {"WH_north":11, "WH_south":13, "ppump":15}
+  map1 = {"WH_north":11, "WH_south":13}
   map2 = {0:"OFF", 1:"ON"}
   return [map1, map2]
 

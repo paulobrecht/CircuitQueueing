@@ -52,7 +52,7 @@ elif LF.isOn("SUB", SUB): # if kitchen consumption is really high, turn both wat
 	status_message += "Kitchen consumption very high (" + str(SUB) + " w), turning off both water heaters."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 0})
 
-# if one water heater is on, turn the other and pool pump off -- prioritize north because more showers are there
+# if one water heater is on, turn the other off -- prioritize north because more showers are there
 elif LF.isOn("WHN", WHN):
 	status_message += "North water heater on (" + str(WHN) + " w), turning off south water heater."
 	LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 0})

@@ -21,7 +21,7 @@ echo "arg=${1}" >> ${OVERRIDE_FLAG_LOC}
 echo ""end=`date -d "+${2} minutes" "+%s"`"" >> ${OVERRIDE_FLAG_LOC}
 echo ""# for humans, end = `date -d "+${2} minutes" "+%H:%M:%S"`"" >> ${OVERRIDE_FLAG_LOC}
 
-logFunc $me "Manual override, turning water heaters and pool pump ${1} for ${2} minutes"
+logFunc $me "Manual override, turning water heaters ${1} for ${2} minutes"
 $HOME/CurbAPI/4shortcuts/setStatus.py ${1}
 sleep ${2}m
 logFunc $me "Manual override expired"
