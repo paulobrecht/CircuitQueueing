@@ -169,7 +169,7 @@ def getEcobeeAuthToken(pin, key=os.environ['ECOBEE_API_KEY'], headers={'content-
     logFunc(logloc=logloc, line=str("ERROR: Could not replace ecobee refresh token."))
     raise SystemExit(str("ERROR: Could not replace ecobee refresh token."))
   else:
-    logFunc(logloc=logloc, line="getEcobeeAuthToken() refreshed ecobee refresh token token.")
+    logFunc(logloc=logloc, line="getEcobeeAuthToken() refreshed ecobee refresh token.")
 
   return jkey
 
@@ -331,6 +331,19 @@ def logFunc(logloc, line, now = None):
 
 
 def prowl(msg):
+  last = len(inspect.stack()) - 1
+  caller = inspect.stack()[last].function
+  caller = caller.translate(str.maketrans('', '', string.punctuation))
+  scriptDir = os.environ['CURB_DIR']
+  execList = [scriptDir + "prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'"), caller]
+  output = subprocess.run(execList, capture_output = True)
+  xmlobj = output.stdout.decode("utf-8")
+  return xmlobj
+
+
+
+
+def prowl(msg):
   """Send a prowl notification using prowl API
 
   Extended
@@ -338,13 +351,16 @@ def prowl(msg):
 
   import subprocess
   import inspect
+  import string
 
-  caller = inspect.stack()[2].function
-  execList = ["${CURB_DIR}/prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'")]
+  last = len(inspect.stack()) - 1 # index of last element in inspect.stack()
+  caller = inspect.stack()[last].function
+  caller = caller.translate(str.maketrans('', '', string.punctuation)) # remove special chars that mess with curl
+  scriptDir = os.environ['CURB_DIR']
+  execList = [scriptDir + "/prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'"), caller]
   output = subprocess.run(execList, capture_output = True)
   xmlobj = output.stdout.decode("utf-8")
   return xmlobj
-
 
 
 
