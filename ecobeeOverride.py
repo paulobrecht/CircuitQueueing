@@ -50,14 +50,14 @@ while True:
 			sys.exit("Too many errors in a row reading/parsing consumption JSON file. I give up.")
 
 	# if certain conditions, set an override hold on the ecobee for holdInterval (default=5) minutes
-	# conditions: HPN is on, Kitchen usage is very high, total hog consumption is > 5000, or dryer is on
-	if LF.isOn("HPN", HPN) or LF.isOn("SUB", SUB) or totalHogConsumption > 5000 or LF.isOn("DRY", DRY):
+	# conditions: HPN is on, Kitchen usage is very high, total hog consumption is > 6000, or dryer is on
+	if LF.isOn("HPN", HPN) or LF.isOn("SUB", SUB) or totalHogConsumption > 6000 or LF.isOn("DRY", DRY):
 
 		# Why do we fire?
 		hpn_on = int(LF.isOn("HPN", HPN) == 1)
 		sub_on = int(LF.isOn("SUB", SUB) == 1)
 		dry_on = int(LF.isOn("DRY", DRY) == 1)
-		hog_on = int(totalHogConsumption > 5000)
+		hog_on = int(totalHogConsumption > 6000)
 		reason = sum([1000 * hpn_on, 100 * sub_on, 10 * dry_on, hog_on])
 
 		hs = "ON"
@@ -91,7 +91,7 @@ while True:
 			except Exception:
 				LF.handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc)
 
-			# log the override (if this is the first time through the loop with HPN on), but only if it worked
+			# log the override (if this is the first time through the loop), but only if it worked
 			if resultCode == "GOOD" and messageFlag == False:
 				LF.logFunc(logloc = logloc, line = "Setting an override hold on south heat pump (reason " + f'{reason:04d}' + ")")
 				messageFlag = True
@@ -99,8 +99,9 @@ while True:
 			# set live hold flag to indicate active hold and reset resultCode
 			liveHoldFlag = True
 			resultCode == "GOOD"
+			time.sleep(60) # set override hold, wait 60 to check again
 
-		else: # if HPN is on and liveHoldFlag is already True, there's no new news. Wait 60 or until expiry
+		else: # if conditions and liveHoldFlag is already True, there's no new news. Wait 60 or until expiry
 			remainingHold = endEpoch - time.mktime(time.localtime())
 			if remainingHold < 60:
 #				LF.logFunc(logloc = logloc, line = logShortcut(msg="sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
@@ -110,9 +111,9 @@ while True:
 #				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping 60", hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(60)
 
-	else: # if HPN is not on (<= 300)
+	else: # if conditions do not hold, we have to see if it's because they just ended or if nothing is going on
 		hs = "OFF"
-		if liveHoldFlag == True: # if HPN is off but live hold flag is set, we are first detecting that HPN has ended. Resume program, set live hold flag to false.
+		if liveHoldFlag == True: # if conditions do not hold but live hold flag is set, we are just now detecting that conditions stopped. Resume program, set live hold flag to false.
 
 			# update ecobee access token
 			try:
@@ -126,7 +127,7 @@ while True:
 			resultCode = "GOOD"
 			try:
 				rP, resultAPI = LF.resumeProgram(auth_token=ECOBEE_TOKEN)
-#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
@@ -134,12 +135,13 @@ while True:
 					LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc)
+			time.sleep(60) # resume program, wait 60 to enter loop again. OR problem, wait 60 to enter loop again.
 
 			# log the resumption (since is the first loop detecting cessation of HPN activity), but only if it worked
 			if resultCode == "GOOD":
-				LF.logFunc(logloc=logloc, line="North heat pump no longer running, allowing south heat pump (ecobee) to resume program")
+				LF.logFunc(logloc=logloc, line="Reason " + reason + "no longer true, allowing south heat pump (ecobee) to resume program")
 				liveHoldFlag = False # set live hold flag to indicate no active hold
 				messageFlag = False # set messageFlag to false so log message is written next time HPN kicks on
 
-		else: # if HPN is off and no hold is currently active, there's no new news. Wait 60.
+		else: # if conditions do not hold, and no hold is currently active, there's no new news. Wait 60.
 			time.sleep(60)

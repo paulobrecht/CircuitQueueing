@@ -231,7 +231,7 @@ def queryEcobee(auth_token, includeSettings=True, includeEvents=False, headers={
 
 
 
-def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterval=240, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
+def postHold(auth_token, thermostatTime, heatRangeLow, coolRangeHigh, holdInterval=300, headers={'content-type': 'application/json', 'charset': 'UTF-8'}):
   """HTTP POST request to set a hold on the thermostat
 
   Extended
@@ -403,7 +403,7 @@ def isOn(device_name, device_usage):
   Extended
   """
 
-  thresh = {"HPN": 300, "HPS": 300, "DRY": 100, "SUB": 3000, "WHN": 500, "WHS": 500}
+  thresh = {"HPN": 300, "HPS": 300, "DRY": 100, "SUB": 4000, "WHN": 500, "WHS": 500}
 
   if device_usage > thresh[device_name]:
     status = 1 # ON

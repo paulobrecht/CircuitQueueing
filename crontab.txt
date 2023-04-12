@@ -16,3 +16,6 @@ MAILTO=pi
 */1  10-17 * * *   /home/pi/CurbAPI/curbLogic.sh                 # every minute from 10:00 am to 5:59 pm
 */1  18-20 * * 6-7 /home/pi/CurbAPI/curbLogic.sh                 # no peak auto-off on weekends, so query Sat Sun peak too
 */1  21-22 * * *   /home/pi/CurbAPI/curbLogic.sh                 # every minute from 9:00 pm to 10:59 pm
+
+@reboot            /home/pi/CurbAPI/ecobeeOverride.sh            # at reboot, start ecobeeOverride.sh
+*/10 *     * * *   /home/pi/CurbAPI/ecobeeOverride.sh            # run every 10 minutes (script exits if it's already running)
