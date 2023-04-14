@@ -20,7 +20,6 @@ try:
 	first_json_timestamp = usage["timestamp"]
 	data_lag = int(round(mktime(localtime()) - usage["timestamp"]))
 	WHS, WHN, DRY, HPS, HPN, SUB, PP, totalHogConsumption = LF.curbUsage(usage)
-	PRD = abs(usage['production'])
 except BaseException:
 	LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file.")
 	sys.exit()
@@ -40,6 +39,7 @@ WHS_status = [initial_dict["WH_south"]] # start list that will be [before, after
 isSchoolHours = int(strftime("%H",localtime())) in range(6,14)
 isWeekday = int(strftime("%w",localtime())) in range(1,6)
 month = int(strftime("%m", localtime()))
+PRD = LF.averageProduction(jsonloc)
 lowProduction = (month in range(3,11) and PRD < 5000) or (month in [1,2,11,12] and PRD < 4000)
 
 # status_message starts with lag indicator if there's a lag
@@ -75,10 +75,14 @@ elif LF.isOn("WHS", WHS):
 	status_message += "South water heater on (" + str(WHS) + " w), turning off north water heater."
 	LF.gpioSetStatus(status_dict = {"WH_north": 0, "WH_south": 1})
 
-else:
-	status_message += "No other devices running, allowing both water heaters (" + \
-	                   str(WHN) + " w, " + str(WHS) + " w) to run."
+# if north is allowed but not running, then that happened last run of this program. Turn both on. North didn't need to run.
+elif LF.gpioCheckStatus("WH_north")["WH_north"] == 1 and not LF.isOn("WHN", WHN):
+	status_message += "No devices running, allowing both water heaters to run."
 	LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 1})
+
+else:
+	status_message += "No devices running, allowing north water heater to run."
+	LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 0})
 
 end_dict = LF.gpioCheckStatus(["WH_north", "WH_south"])
 WHN_status.append(end_dict["WH_north"])
@@ -94,6 +98,7 @@ if any_change:
 	status_add = " WHN:" + l2s(WHN_status) + " WHS:" + l2s(WHS_status)
 	status_message += status_add
 	LF.logFunc(logloc=logloc, line=status_message)
-elif (WHN_status, WHS_status) != ([1, 1], [1, 1]):
-	tmp = {"HPN": HPN, "HPS": HPS, "WHN": WHN, "WHS": WHS, "DRY": DRY, "SUB": SUB, "PP": PP, "status N,S": (WHN_status, WHS_status)}
+
+#elif (WHN_status, WHS_status) != ([1, 1], [1, 1]):
+#	tmp = {"HPN": HPN, "HPS": HPS, "WHN": WHN, "WHS": WHS, "DRY": DRY, "SUB": SUB, "PP": PP, "status N,S": (WHN_status, WHS_status)}
 #	LF.logFunc(logloc=logloc, line="No changes. " + dumps(tmp))

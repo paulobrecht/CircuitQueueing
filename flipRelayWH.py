@@ -37,7 +37,7 @@ WHN_status = [initial_dict["WH_north"]]
 WHS_status = [initial_dict["WH_south"]]
 
 # flip relay to off or on depending on command line arg supplied to script on crontab
-# When turning OFF, turn both off. When turning on, turn on only North heater -- queryCurb will turn everything else on if North doesn't need to run right now
+# When turning OFF, turn both off. When turning on, turn on only North heater -- curbLogic.py will turn both on if North doesn't need to run right now
 if arg1 == "ON":
   LF.gpioSetStatus(status_dict = {"WH_north": 1, "WH_south": 0})
 elif arg1 == "OFF":
