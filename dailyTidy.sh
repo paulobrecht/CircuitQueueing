@@ -28,26 +28,26 @@ echo ""                                                         >> ${fn1}
 echo "${dt2}: Archived yesterday's file, starting a fresh one." >> ${fn1}
 echo ""                                                         >> ${fn1}
 
-# make new consumption log file
+# make new consumption log file (no headers because that complicates parsing)
 touch ${fn2}
-# echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
-# echo "Consumption Log File for ${dt3}"                          >> ${fn2}
-# echo "- - - - - - - - - - - - - - - - - - - - - - - -"          >> ${fn2}
-# echo ""                                                         >> ${fn2}
-# echo "${dt2}: Archived yesterday's file, starting a fresh one." >> ${fn2}
-# echo ""                                                         >> ${fn2}
 
-# copy crontab to CurbAPI/crontab.txt (omit headers)
-# for backup/version control, but only when it changes
-main="${rootdir}/crontab.txt"
-copy="${rootdir}/old_crontabs/crontab_${dt1}.txt" # no file extension
+# copy crontab to CurbAPI/crontab.txt (omit headers), but only when it changes
+# also archive the old one for backup/version control
+copy="${rootdir}/crontab_current.txt"
+arch="${rootdir}/old_crontabs/crontab_${dt1}.txt"
 
-echo "$(crontab -l | grep -v ^\#)" > tmp
-change=$(diff tmp $main | wc -l)
-if [[ $change != 0 ]]; then
-  mv $main $copy
-  gzip $copy
-  mv tmp $main
-else
-  rm -f tmp
+if [[ -f $copy ]]; then # first make sure crontab_current.txt exists
+  echo "$(crontab -l | grep -v ^\#)" > tmp # active crontab to tmp file
+  change=$(diff tmp $copy | wc -l) # did it change?
+  if [[ $change != 0 ]]; then # if it changed
+    mv $copy $arch
+    mv tmp $copy
+    gzip $arch
+    echo "${dt2}: Crontab changed. Updated crontab_current.txt. Archived the old." >> ${fn1}
+  else # if no change, rm tmp and exit
+    rm -f tmp
+  fi
+else # if crontab_current.txt doesn't exist, make it. But there's nothing to archive
+  echo "$(crontab -l | grep -v ^\#)" > $copy # active crontab to tmp file
+  echo "${dt2}: crontab_current.txt not found. Copied active crontab to that location." >> ${fn1}
 fi

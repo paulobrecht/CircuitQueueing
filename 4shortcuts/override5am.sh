@@ -21,8 +21,8 @@ echo "arg=${1}" >> ${OVERRIDE_FLAG_LOC}
 echo ""end=`date -d "+${2} minutes" "+%s"`"" >> ${OVERRIDE_FLAG_LOC}
 echo ""# for humans, end = `date -d "+${2} minutes" "+%H:%M:%S"`"" >> ${OVERRIDE_FLAG_LOC}
 
-logFunc $me "Manual override, turning water heaters ${1} for ${2} minutes"
-$HOME/CurbAPI/4shortcuts/setStatus.py ${1}
+logFunc $me "Manual override, turning north water heater ${1} for ${2} minutes"
+$HOME/CurbAPI/4shortcuts/setStatus5am.py ${1}
 sleep ${2}m
 logFunc $me "Manual override expired"
 
@@ -46,7 +46,7 @@ elif [[ "${ete[*]}" =~ "${month}" ]]; then
 fi
 
 if [[ "${peak_hours[*]}" =~ "${hour}" ]]; then
-  $HOME/CurbAPI/4shortcuts/setStatus.py ${newset}
+  $HOME/CurbAPI/4shortcuts/setStatus5am.py ${newset}
 fi
 
 exit
