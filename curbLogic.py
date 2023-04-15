@@ -39,7 +39,7 @@ WHS_status = [initial_dict["WH_south"]] # start list that will be [before, after
 isSchoolHours = int(strftime("%H",localtime())) in range(6,14)
 isWeekday = int(strftime("%w",localtime())) in range(1,6)
 month = int(strftime("%m", localtime()))
-PRD = LF.averageProduction(jsonloc)
+PRD = abs(LF.averageProduction(jsonloc))
 lowProduction = (month in range(3,11) and PRD < 5000) or (month in [1,2,11,12] and PRD < 4000)
 
 # status_message starts with lag indicator if there's a lag
