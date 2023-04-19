@@ -62,13 +62,18 @@ def newCurbQuery(locationID=os.environ["CURB_LOCATION_ID"], apiURL=os.environ["C
   """
 
   import os
+  from time import mktime, localtime
   from json import loads, dumps
   from requests import get
 
   # get latest usage data using daily token, then parse
+  now = int(mktime(localtime()))
   latest = get(apiURL + locationID, headers = {'authorization': 'Bearer ' + AT})
   latest_json = loads(latest.text)
   parsed = parseCurb(latest_json)
+
+  # add fetched_at timestamp
+  parsed['data_lag'] = now - parsed['timestamp']
 
   return parsed
 
@@ -377,7 +382,7 @@ def handleException(msg, logloc):
   from local_functions import logFunc, prowl
   logFunc(logloc=logloc, line="ERROR: " + msg + ". Exiting.") # write to log file
   prowl(msg="Abnormal exit with \'" + msg + "\'") # send to prowl
-  sys.exit("ERROR: " + msg + ". Exiting.")
+  sys.exit(0)
 
 
 
@@ -444,7 +449,7 @@ def isOn(device_name, device_usage):
   Extended
   """
 
-  thresh = {"HPN": 300, "HPS": 300, "DRY": 100, "SUB": 4000, "WHN": 500, "WHS": 500}
+  thresh = {"HPN": 300, "HPS": 300, "DRY": 350, "SUB": 4000, "WHN": 500, "WHS": 500}
 
   if device_usage > thresh[device_name]:
     status = 1 # ON

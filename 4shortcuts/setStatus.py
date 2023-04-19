@@ -10,15 +10,13 @@ unmap = {"OFF":0, "ON":1}
 arg = sys.argv[1]
 
 # GPIO setup
-WH_north, WH_south, ppump = [11, 13, 15] # board pins
+WH_north, WH_south = [11, 13] # board pins
 gpio.setmode(gpio.BOARD)
 gpio.setwarnings(False)
 gpio.setup(WH_north,gpio.OUT)
 gpio.setup(WH_south,gpio.OUT)
-gpio.setup(ppump,gpio.OUT)
 
 # turn all on or off, depending on argument
 act = unmap[arg]
 gpio.output(WH_north, act)
 gpio.output(WH_south, act)
-gpio.output(ppump, act)

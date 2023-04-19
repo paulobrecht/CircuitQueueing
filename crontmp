@@ -42,10 +42,23 @@ MAILTO=pi
 *     *    * *    *   /home/pi/CurbAPI/fetchCurbData.sh                # Fetch Curb data every minute every day 24-7, no override
 
 0     0    * *    *   /home/pi/CurbAPI/dailyTidy.sh                    # every day, zip/stash old log and start new
-0     5    * *    1-5 /home/pi/CurbAPI/5am_shower.sh                   # let north water heater run from 5-6 on weekdays
+0     5    * *    1-5 /home/pi/CurbAPI/4shortcuts/override5am.sh ON 59 # let north water heater run from 5-6 on weekdays
 
 @reboot               /home/pi/CurbAPI/ecobeeOverride.sh               # at reboot, start ecobeeOverride.sh
-*/9   *    * *    *   /home/pi/CurbAPI/ecobeeOverride.sh               # run every 9 minutes (script exits if it's already running)
+*/9   *    * * *      /home/pi/CurbAPI/ecobeeOverride.sh               # run every 9 minutes (script exits if it's already running)
 
+
+# ---------
+# WINTER
+# ---------
+
+# m h  dom mon dow   command
+0     6    * *    1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF              # off from 6-9 am (winter, weekdays)
+0    18    * *    1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF              # off from 6-9 pm (winter, weekdays)
 0    23    * *    *   /home/pi/CurbAPI/flipRelayWH.sh OFF              # off for the night at 11:00 pm
 59   23    * *    *   /home/pi/CurbAPI/getAccessToken.sh               # get new Curb token every night at 11:59 pm
+
+*/2  8-10  * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
+*/2  11-17 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minutes from 11:00 am to 5:58 pm
+*/2  18-20 * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
+*/2  21-22 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minutes from 9:00 pm to 10:58 pm

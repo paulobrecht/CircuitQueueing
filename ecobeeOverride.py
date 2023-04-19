@@ -53,8 +53,7 @@ while True:
 
 	# if certain conditions, set an override hold on the ecobee for holdInterval (default=5) minutes.
 	# conditions: HPN is on, Kitchen usage is very high, total hog consumption is > 3000, or dryer is on.
-	# chose 5000 because water heaters max out at about 4500, so this only fires if the water heater and another hog are on.
-	if LF.isOn("HPN", HPN) or LF.isOn("SUB", SUB) or totalHogConsumption > 3000 or LF.isOn("DRY", DRY):
+	if LF.isOn("HPN", HPN) or LF.isOn("SUB", SUB) or LF.isOn("DRY", DRY) or totalHogConsumption > 3000:
 
 		# Why do we fire?
 		hpn_on = int(LF.isOn("HPN", HPN) == 1)
@@ -142,7 +141,7 @@ while True:
 
 			# log the resumption (since is the first loop detecting cessation of HPN activity), but only if it worked
 			if resultCode == "GOOD":
-				LF.logFunc(logloc=logloc, line="Reason " + f'{reason:04d}' + " no longer true, allowing south heat pump (ecobee) to resume program")
+				LF.logFunc(logloc=logloc, line="Criteria no longer met, allowing south heat pump (ecobee) to resume program")
 				liveHoldFlag = False # set live hold flag to indicate no active hold
 				messageFlag = False # set messageFlag to false so log message is written next time HPN kicks on
 

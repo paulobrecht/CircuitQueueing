@@ -3,10 +3,9 @@
 # ---------
 # SUMMER
 # ---------
-0    15    * *    1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF              # off from 3-7 pm (summer, weekdays)
-0    23    * *    *   /home/pi/CurbAPI/flipRelayWH.sh OFF              # off for the night at 11:00 pm
-59   23    * *    *   /home/pi/CurbAPI/getAccessToken.sh               # get new Curb token every night at 11:59 pm
 
-*/2  8-14  * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minutes from 8 am to 2:59 pm
-*/2  15-18 * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
-*/2  19-22 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minute from 7:00 pm to 10:58 pm
+# m h  dom mon dow   command
+0    15          * *    1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF              # off from 3-7 pm (summer, weekdays)
+
+*/2  8-14,19-22  * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every three minutes from 8 am to 2:58 pm
+*/2  15-18       * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
