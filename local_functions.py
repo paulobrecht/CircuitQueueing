@@ -72,7 +72,7 @@ def newCurbQuery(locationID=os.environ["CURB_LOCATION_ID"], apiURL=os.environ["C
   latest_json = loads(latest.text)
   parsed = parseCurb(latest_json)
 
-  # add fetched_at timestamp
+  # compute data_lag and add it to output
   parsed['data_lag'] = now - parsed['timestamp']
 
   return parsed
