@@ -10,7 +10,7 @@ MAILTO=pi
 *     *    * *    *   /home/pi/CurbAPI/fetchCurbData.sh                # Fetch Curb data every minute every day 24-7, no override
 
 0     0    * *    *   /home/pi/CurbAPI/dailyTidy.sh                    # every day, zip/stash old log and start new
-0     5    * *    1-5 /home/pi/CurbAPI/4shortcuts/override5am.sh ON 59 # let north water heater run from 5-6 on weekdays
+0     5    * *    1-5 /home/pi/CurbAPI/5am_shower.sh        # let north water heater run from 5-6 on weekdays
 
 @reboot               /home/pi/CurbAPI/ecobeeOverride.sh               # at reboot, start ecobeeOverride.sh
 */9   *    * * *      /home/pi/CurbAPI/ecobeeOverride.sh               # run every 9 minutes (script exits if it's already running)

@@ -450,12 +450,7 @@ def isOn(device_name, device_usage):
   """
 
   thresh = {"HPN": 300, "HPS": 300, "DRY": 350, "SUB": 4000, "WHN": 500, "WHS": 500}
-
-  if device_usage > thresh[device_name]:
-    status = 1 # ON
-  else:
-    status = 0 # OFF
-
+  status = int(device_usage > thresh[device_name])
   return status
 
 

@@ -84,7 +84,7 @@ while True:
 			resultCode = "GOOD"
 			try:
 				setHold, endEpoch, resultAPI = LF.postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
-#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
+				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
@@ -106,11 +106,11 @@ while True:
 		else: # if conditions and liveHoldFlag is already True, there's no new news. Wait slpSecs or until expiry
 			remainingHold = endEpoch - time.mktime(time.localtime())
 			if remainingHold < slpSecs:
-#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(max(remainingHold - 3, 1))
 				liveHoldFlag = False
 			else:
-#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping ", hs = hs) + ", remainingHold = " + str(remainingHold))
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping ", hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(slpSecs)
 
 	else: # if conditions do not hold, we have to see if it's because they just ended or if nothing is going on
@@ -129,7 +129,7 @@ while True:
 			resultCode = "GOOD"
 			try:
 				rP, resultAPI = LF.resumeProgram(auth_token=ECOBEE_TOKEN)
-#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
@@ -137,13 +137,14 @@ while True:
 					LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc)
-			time.sleep(slpSecs) # resume program or problem. Either way, wait to enter loop again.
 
 			# log the resumption (since is the first loop detecting cessation of HPN activity), but only if it worked
 			if resultCode == "GOOD":
 				LF.logFunc(logloc=logloc, line="Criteria no longer met, allowing south heat pump (ecobee) to resume program")
 				liveHoldFlag = False # set live hold flag to indicate no active hold
 				messageFlag = False # set messageFlag to false so log message is written next time HPN kicks on
+
+			time.sleep(slpSecs) # resume program or problem. Either way, wait to enter loop again.
 
 		else: # if conditions do not hold, and no hold is currently active, there's no new news. Wait to reenter loop.
 			time.sleep(slpSecs)

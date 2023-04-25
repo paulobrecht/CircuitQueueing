@@ -29,8 +29,8 @@ gpio.setwarnings(False)
 gpio.setup(WH_north,gpio.OUT)
 gpio.setup(WH_south,gpio.OUT)
 
-# Turn on all at bootup
+# Turn on north only at bootup
 gpio.output(WH_north,1)
-gpio.output(WH_south,1)
+gpio.output(WH_south,0)
 
-logfunc(line = "pi-wh.lan rebooted. Restarting now with (1, 1)")
+logFunc(line = "pi-wh.lan rebooted. Restarting now with (1, 0)")
