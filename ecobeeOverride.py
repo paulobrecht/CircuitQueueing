@@ -16,12 +16,12 @@ logloc = os.environ['CURB_LOCAL_LOG_LOC']
 jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
 
 # sleep time between loops
-slpSecs = 135
+slpSecs = 75
+reason = 0
 
 def logShortcut (msg, hs): # just needed for verbose logging while working out kinks, bugs, etc.
-	hs2 = "HPN " + hs
-	myStr = "Curb = " + consTime + ", " + hs2 + ", liveHoldFlag = " + str(liveHoldFlag) + ", messageFlag = " + str(messageFlag) + \
-			", HPN = " + str(HPN) + ", HPS = " + str(HPS) + ", " + msg
+	myStr = "Curb = " + consTime + ", " + ", liveHoldFlag = " + str(liveHoldFlag) + ", messageFlag = " + str(messageFlag) + \
+			", Reason = " + str(reason) + ", HPS = " + str(HPS) + ", " + msg
 	return myStr
 
 
@@ -110,7 +110,7 @@ while True:
 				time.sleep(max(remainingHold - 3, 1))
 				liveHoldFlag = False
 			else:
-				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping ", hs = hs) + ", remainingHold = " + str(remainingHold))
+				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping", hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(slpSecs)
 
 	else: # if conditions do not hold, we have to see if it's because they just ended or if nothing is going on

@@ -8,5 +8,5 @@
 0     6          * *    1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF              # off from 6-9 am (winter, weekdays)
 0    18          * *    1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF              # off from 6-9 pm (winter, weekdays)
 
-*/2  11-17,21-22 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every three minutes
-*/2  8-10,18-20  * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
+*/1  11-17,21-22 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every three minutes
+*/1  8-10,18-20  * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
