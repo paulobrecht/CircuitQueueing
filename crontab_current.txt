@@ -22,7 +22,7 @@ MAILTO=pi
 0    23    * *    *   /home/pi/CurbAPI/flipRelayWH.sh OFF              # off for the night at 11:00 pm
 59   23    * *    *   /home/pi/CurbAPI/getAccessToken.sh               # get new Curb token every night at 11:59 pm
 
-*/2  8-10  * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
-*/2  11-17 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minutes from 11:00 am to 6 pm
-*/2  18-20 * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
-*/2  21-22 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minutes from 9:00 pm to 11 pm
+*/1  8-10  * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
+*/1  11-17 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minutes from 11:00 am to 6 pm
+*/1  18-20 * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
+*/1  21-22 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every two minutes from 9:00 pm to 11 pm

@@ -84,7 +84,7 @@ while True:
 			resultCode = "GOOD"
 			try:
 				setHold, endEpoch, resultAPI = LF.postHold(auth_token=ECOBEE_TOKEN, thermostatTime=thermostatTime, heatRangeLow=temps[0], coolRangeHigh=temps[1])
-				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
+#				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran postHold()", hs = hs))
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
@@ -106,11 +106,11 @@ while True:
 		else: # if conditions and liveHoldFlag is already True, there's no new news. Wait slpSecs or until expiry
 			remainingHold = endEpoch - time.mktime(time.localtime())
 			if remainingHold < slpSecs:
-				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
+#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping " + str(remainingHold), hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(max(remainingHold - 3, 1))
 				liveHoldFlag = False
 			else:
-				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping", hs = hs) + ", remainingHold = " + str(remainingHold))
+#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "sleeping", hs = hs) + ", remainingHold = " + str(remainingHold))
 				time.sleep(slpSecs)
 
 	else: # if conditions do not hold, we have to see if it's because they just ended or if nothing is going on
@@ -129,7 +129,7 @@ while True:
 			resultCode = "GOOD"
 			try:
 				rP, resultAPI = LF.resumeProgram(auth_token=ECOBEE_TOKEN)
-				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
+#				LF.logFunc(logloc = logloc, line = logShortcut(msg = "ran resumeProgram()", hs = hs))
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
