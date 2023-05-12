@@ -15,7 +15,7 @@ import RPi.GPIO as gpio
 # Write line to log file, default with timestamp
 #################################
 
-def logFunc(line, logloc = "/home/pi/CurbAPI/activity_log.txt", now = None):
+def logFunc(line, logloc = "/home/pi/CurbAPI/textfiles/activity_log.txt", now = None):
   from time import strftime, localtime
   log = open(logloc, "a")
   now = strftime("%H:%M:%S", localtime())

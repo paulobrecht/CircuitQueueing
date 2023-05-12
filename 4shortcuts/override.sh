@@ -8,8 +8,6 @@
 
 # Sample call: ./override.sh ON 60
 
-. $HOME/CurbAPI_profile
-
 logfile="$CURB_LOCAL_LOG_LOC"
 dt=`date +'%H:%M:%S'` # HMS right now
 me=`basename $0`

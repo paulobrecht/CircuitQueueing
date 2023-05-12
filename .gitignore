@@ -1,17 +1,10 @@
-activity_log.txt
-ecobee_activity_log.txt
-consumption_log.json
-get.txt
 ._*
 .DS_Store
 ._.DS_Store
 
-accessToken.txt
-refreshToken.txt
-
 logs/**
+textfiles/**
 4shortcuts/testing/**
 4shortcuts/override_flag
 __pycache__/**
 old_crontabs/**
-

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. $HOME/CurbAPI_profile
+
 # date and script name
 dt=$(date +'%H:%M:%S') # HMS right now
 month=$(date +'%m')
@@ -7,11 +9,11 @@ monthW=$(date +'%b')
 me=$(basename "$0")
 
 # project directory and logfile
-rootdir="${HOME}/CurbAPI"
-logfile="${rootdir}/activity_log.txt"
-always="${rootdir}/ct_template_always.txt"
-summer="${rootdir}/ct_template_summer.txt"
-winter="${rootdir}/ct_template_winter.txt"
+rootdir="${CURB_DIR}"
+logfile="${CURB_LOCAL_LOG_LOC}"
+always="${rootdir}/textfiles/ct_template_always.txt"
+summer="${rootdir}/textfiles/ct_template_summer.txt"
+winter="${rootdir}/textfiles/ct_template_winter.txt"
 
 if [[ -f ${summer} ]] && [[ -f ${winter} ]] && [[ -f ${always} ]]; then
   if [[ "${month}" == "05" ]]; then

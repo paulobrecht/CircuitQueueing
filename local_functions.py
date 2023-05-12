@@ -336,17 +336,30 @@ def logFunc(logloc, line, now = None):
 
 
 
+def getCaller():
+  """Get name of script that called this function
 
-def prowl(msg):
-  last = len(inspect.stack()) - 1
-  caller = inspect.stack()[last].function
-  caller = caller.translate(str.maketrans('', '', string.punctuation))
-  scriptDir = os.environ['CURB_DIR']
-  execList = [scriptDir + "prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'"), caller]
-  output = subprocess.run(execList, capture_output = True)
-  xmlobj = output.stdout.decode("utf-8")
-  return xmlobj
+  Extended
+  """
 
+  import inspect
+
+  caller = ""
+  func = ""
+
+  def recurse(limit):
+    local_variable = '.' * limit
+    if limit <= 0:
+        for frame, filename, line_num, func, source_code, source_index in inspect.stack():
+            caller = filename.strip(os.environ['CURB_DIR'])
+            func = source_code[source_index].strip()
+        return caller, func
+    caller, func = recurse(limit - 1)
+    return caller, func
+
+  caller, func = recurse(8)
+# caller = caller + " (" + func + ")"
+  return caller
 
 
 
@@ -360,18 +373,15 @@ def prowl(msg):
   import inspect
   import string
 
-  last = len(inspect.stack()) - 1 # index of last element in inspect.stack()
-  caller = inspect.stack()[last].function
-  caller = caller.translate(str.maketrans('', '', string.punctuation)) # remove special chars that mess with curl
-  scriptDir = os.environ['CURB_DIR']
-  execList = [scriptDir + "/prowl.sh", str("\'ERROR (" + caller + "): " + msg + "\'"), caller]
+  caller = getCaller()
+  execList = [os.environ['CURB_DIR'] + "prowl.sh", str("\'ERROR: " + msg + "\'"), caller]
   output = subprocess.run(execList, capture_output = True)
   xmlobj = output.stdout.decode("utf-8")
   return xmlobj
 
 
 
-def handleException(msg, logloc):
+def handleException(msg, logloc, errorcode = 0):
   """Generic exception handler (logs error, sends a prowl notification, calls sys.exit())
 
   Extended
@@ -382,7 +392,7 @@ def handleException(msg, logloc):
   from local_functions import logFunc, prowl
   logFunc(logloc=logloc, line="ERROR: " + msg + ". Exiting.") # write to log file
   prowl(msg="Abnormal exit with \'" + msg + "\'") # send to prowl
-  sys.exit(0)
+  sys.exit(errorcode)
 
 
 

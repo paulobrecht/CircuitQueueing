@@ -1,13 +1,15 @@
 #!/bin/bash
 
+. $HOME/CurbAPI_profile
+
 dt1=`date +'%Y-%m-%d' -d 'yesterday'` # YMD yesterday, for archive log file names
 dt2=`date +'%H:%M:%S'` # HMS right now
 dt3=`date +'%A, %B %e'` # For file headers
 
-rootdir="$HOME/CurbAPI"
+rootdir="${CURB_DIR}"
 logdir="${rootdir}/logs"
-fn1="${rootdir}/activity_log.txt"
-fn2="${rootdir}/consumption_log.json"
+fn1="${CURB_LOCAL_LOG_LOC}"
+fn2="${CURB_LOCAL_JSON_LOC}"
 arch_fn1="${logdir}/activity_log_${dt1}.txt"
 arch_fn2="${logdir}/consumption_log_${dt1}.json"
 

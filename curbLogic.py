@@ -32,7 +32,7 @@ try:
 	trying = readit()
 	data_lag = trying[1]
 except BaseException:
-	LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file.")
+	LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file." + jsonloc)
 	sys.exit()
 
 # if data lag is > 2 minutes, wait a bit for the next update

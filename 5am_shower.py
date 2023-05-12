@@ -21,6 +21,6 @@ logloc = os.environ['CURB_LOCAL_LOG_LOC']
 LF.logFunc(logloc=logloc, line="North water heater allowed for one hour for morning shower")
 gpio.output(WH_north, 1)
 gpio.output(WH_south, 0)
-time.sleep(35400)
+time.sleep(3540)
 LF.logFunc(logloc=logloc, line="North water heater shower time is over")
 gpio.output(WH_north, 0)
