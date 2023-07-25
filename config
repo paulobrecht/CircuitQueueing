@@ -1,0 +1,26 @@
+# putting some ideas here for things to control with config file rather than hard-coding
+
+# -----------------------
+# Water Heater Run Since
+# -----------------------
+
+# hours since water heater has run, threshold for notifications
+HasNotRunThreshold = 20
+
+# how often to check/notify (Tuple of minutes 0-59)
+HasNotRunFrequency = (0, 30)
+
+
+# -----------------------
+# Prowl
+# -----------------------
+
+# Which Prowl Notifications
+SendToProwl_HasNotRun = True
+SendToProwl_CurbFetchError = True
+
+
+# -----------------------
+# Scheduling
+# -----------------------
+

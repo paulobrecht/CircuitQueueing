@@ -22,7 +22,7 @@ def getFunc():
 #	out = "WHN="+WHNs+"&WHS="+WHSs+"&PP="+PPs
 #	out = {"devices":["WHN", "WHS", "PP"], "statuses":[WHNs, WHSs, PPs]}
 #	out = [WHNs, WHSs, PPs]
-	out = "North WH is " + WHNs + ". South WH is " + WHSs + ". Pool pump is " + PPs + "."
+	out = "North WH is " + WHNs + ". South WH is " + WHSs + "."
 	return out
 
 m=getFunc()

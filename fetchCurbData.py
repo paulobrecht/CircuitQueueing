@@ -2,7 +2,7 @@
 
 import os
 from time import mktime, localtime, sleep, strftime
-from local_functions import prowl, newCurbQuery, parseCurb, handleException, logFunc
+from local_functions import prowl, newCurbQuery, parseCurb, handleException, logFunc, isOn
 from json import dumps
 
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
@@ -60,32 +60,33 @@ def timeSince(fr, now):
 	rv = True
 	msgStr = ""
 
-	# 57,600 is 14 hours. Every weeknight, south is off from 11 pm until after 11 am,
+	# 72,400 is 20 hours. Every weeknight, south is off from 11 pm until after 11 am,
 	# and there may be a queue at 11 am, so have to wait this long
-	if timeSince > 57600:
+	if timeSince > 72000:
 		rv = False
 		msgStr = dev + " has not run for " + str(int(timeSince/60)) + " min (" + str(int(timeSince/3600)) + " hours)."
 	return rv, msgStr
 
 now = str(curb_data['timestamp'])
 thisMinute = int(strftime("%M", localtime(int(now))))
+[WHN, WHS] = [curb_data[x] for x in ('Water Heater North', 'Water Heater South')]
 
 # last-on filenames
 whnFile = os.environ['CURB_DIR'] + "textfiles/whnLastOn.txt"
 whsFile = os.environ['CURB_DIR'] + "textfiles/whsLastOn.txt"
 
 # update WHN file
-if curb_data['Water Heater North'] > 500:
+if isOn("WHN", WHN):
 	writeFile(whnFile)
-elif thisMinute in range(0,60,10): # read files on the tens and prowl/mail if it's been more than 8 hours since a water heater ran
+elif thisMinute in (0, 30): # read files on the tens and prowl/mail if it's been more than 8 hours since a water heater ran
 	stat1, msg1 = timeSince(fr=whnFile, now=now)
 	if stat1 == False:
 		handleException(msg=msg1, logloc=logloc, errorcode=msg1)
 
 # update WHS file
-if curb_data['Water Heater South'] > 500:
+if isOn("WHS", WHS):
 	writeFile(whsFile)
-elif thisMinute in range(0,60,10): # read files on the tens and prowl/mail if it's been more than 8 hours since a water heater ran
+elif thisMinute in (0, 30): # read files on the tens and prowl/mail if it's been more than 8 hours since a water heater ran
 	stat2, msg2 = timeSince(fr=whsFile, now=now)
 	if stat2 == False:
 		handleException(msg=msg2, logloc=logloc, errorcode=msg2)

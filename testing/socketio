@@ -1,0 +1,22 @@
+import socketio
+sio = socketio.Client()
+
+@sio.event
+def connect():
+	print('connection established')
+
+@sio.event
+def my_message(data):
+    print('message received with ', data)
+    sio.emit('my response', {'response': 'my response'})
+
+@sio.event
+def disconnect():
+    print('disconnected from server')
+
+sio.connect('https://app.energycurb.com/api/circuit-data')
+sio.wait()
+
+
+
+tk="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjJ5YVdyWmpDWC1ndEE1QWxwSWxVeCJ9.eyJpc3MiOiJodHRwczovL2VuZXJneWN1cmIuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDYwYTgxMjYwNjFlMmYwMDA2ODBlZGU0MCIsImF1ZCI6ImFwcC5lbmVyZ3ljdXJiLmNvbS9hcGkiLCJpYXQiOjE2OTAxODE5NDcsImV4cCI6MTY5MDI2ODM0NywiYXpwIjoiV0IwU2w5UjlGYjJQRFlXZTVQcmZGUDBpaWl4bXFnZmsiLCJzY29wZSI6ImNvc3RfY2FsY3VsYXRpb24iLCJndHkiOiJwYXNzd29yZCJ9.F071t-6Invcn6FMyfe5H6CKnmvX45XA7X2owDpAv4oPaGyRHTLxnTbNEdmmDRhKrkZKaRrP5XlKYrhyYH5qG0tJhLuEPKnUDG-Va1rKLiYhUtOVHm_UcJkv1SQta7bJdDhs3dezI7yldUvNWu_U5GDUekkksHStfu7zQVrAfsuMYa1zky_mrLpeet0UC7utaNqjJ84FbOBfH_t8eo6wLnld4Dydt6t0r50MG272wmSgDLjrfDoa0l6oHdWQeQi5i0OLXuW2rpnBXz7nPWPZESOYNwxmwGdVnnGJQ1PWA9Wq0C5WxFy6tOOR6yrJeL8f2Amo7yaH5yoj3fkQtLUa-7w"

@@ -8,13 +8,12 @@ act=$CURB_LOCAL_LOG_LOC
 errors=( $(cat $act | grep "Error fetching Curb consumption data" | cut -c1-8) ) # get errors (times only) as array
 errorCount=${#errors[@]}
 
-# for prowl
-timestamps=$(for error in ${errors[@]:$errorCount-5:4}; do echo -n "$error, "; done; echo -n "${errors[$errorCount-1]}")
-app="ConnectCheck"
-event="Repeated Curb query failures"
-desc="Curb query has failed ${errorCount} times today (last 5 at $timestamps)" # for prowl
-
 if [[ $errorCount -ge 5 ]]; then
+  # for prowl
+  timestamps=$(for error in ${errors[@]:$errorCount-5:4}; do echo -n "$error, "; done; echo -n "${errors[$errorCount-1]}")
+  app="ConnectCheck"
+  event="Repeated Curb query failures"
+  desc="Curb query has failed ${errorCount} times today (last 5 at $timestamps)" # for prowl
   ./prowl.sh "$desc" "$app"
   prc=$?
 else

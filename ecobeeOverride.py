@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+import random
 import local_functions as LF
 from subprocess import call
 from json import loads
@@ -15,8 +16,9 @@ RT = os.environ['ECOBEE_REFRESH_TOKEN']
 logloc = os.environ['CURB_LOCAL_LOG_LOC']
 jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
 
-# sleep time between loops
-slpSecs = 75
+# sleep time between loops has a random component
+random.seed(a=8675309)
+
 reason = 0
 
 def logShortcut (msg, hs): # just needed for verbose logging while working out kinks, bugs, etc.
@@ -50,6 +52,8 @@ while True:
 		LF.logFunc(logloc = logloc, line = "ERROR: Problems reading/parsing consumption JSON file. Trying to continue.")
 		if jsonErrors > 4:
 			sys.exit("Too many errors in a row reading/parsing consumption JSON file. I give up.")
+
+	slpSecs = 70 + random.randint(0, 10)
 
 	# if certain conditions, set an override hold on the ecobee for holdInterval (default=5) minutes.
 	# conditions: HPN is on, Kitchen usage is very high, total hog consumption is > 3000, or dryer is on.

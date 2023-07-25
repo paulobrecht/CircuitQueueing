@@ -459,7 +459,7 @@ def isOn(device_name, device_usage):
   Extended
   """
 
-  thresh = {"HPN": 300, "HPS": 300, "DRY": 350, "SUB": 4000, "WHN": 500, "WHS": 500}
+  thresh = {"HPN": 3000, "HPS": 300, "DRY": 350, "SUB": 4000, "WHN": 500, "WHS": 500}
   status = int(device_usage > thresh[device_name])
   return status
 
