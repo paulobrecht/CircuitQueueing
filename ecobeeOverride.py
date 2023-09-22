@@ -75,14 +75,14 @@ while True:
 				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
 #				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (1)", hs = hs))
 			except Exception:
-				LF.handleException(msg="Problem refreshing Ecobee token (1) using refresh token in ecobeeOverride.py", logloc=logloc)
+				LF.handleException(msg="Problem refreshing Ecobee token (1) using refresh token in ecobeeOverride.py", logloc=logloc, short="Ecobee token refresh fail")
 
 			# query thermostats to get necessary data fields
 			try:
 				temps, thermostatTime = LF.queryEcobee(auth_token=ECOBEE_TOKEN)
 #				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
 			except Exception:
-				LF.handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc)
+				LF.handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc, short="Ecobee query fail")
 
 			# Run postHold function
 			resultCode = "GOOD"
@@ -92,10 +92,10 @@ while True:
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
-					LF.prowl(msg=now + ": postHold() received a non-200 response.") # send to prowl
+					LF.prowl(msg=now + ": postHold() received a non-200 response.", "non-200 response") # send to prowl
 					LF.logFunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
-				LF.handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc)
+				LF.handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc, "postHold problem")
 
 			# log the override (if this is the first time through the loop), but only if it worked
 			if resultCode == "GOOD" and messageFlag == False:
@@ -127,7 +127,7 @@ while True:
 				ECOBEE_TOKEN, ECOBEE_TOKEN_TYPE, ECOBEE_REFRESH_TOKEN, ECOBEE_TOKEN_EXPIRY, ECOBEE_SCOPE2 = jkey.values()
 #				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran refreshEcobeeAuthToken (2)", hs = hs))
 			except Exception:
-				LF.handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc)
+				LF.handleException(msg="Problem refreshing Ecobee token (2) using refresh token", logloc=logloc, short="Ecobee token refresh fail")
 
 			# resume program (cancel hold)
 			resultCode = "GOOD"
@@ -137,10 +137,10 @@ while True:
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
-					LF.prowl(msg=now + ": resumeProgram() received a non-200 response.") # send to prowl
+					LF.prowl(msg=now + ": resumeProgram() received a non-200 response.", "non-200 response") # send to prowl
 					LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
-				LF.handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc)
+				LF.handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc, short="Couldn't cancel hold")
 
 			# log the resumption (since is the first loop detecting cessation of HPN activity), but only if it worked
 			if resultCode == "GOOD":

@@ -12,7 +12,7 @@ jsonloc = os.environ['CURB_LOCAL_JSON_LOC']
 try:
 	curb_data = newCurbQuery()
 except BaseException:
-	handleException(msg="Error fetching Curb consumption data", logloc=logloc)
+	handleException(msg="Error fetching Curb consumption data", logloc=logloc, short="newCurbQuery() fail")
 
 # counter for retry up ahead
 i=0
@@ -81,7 +81,7 @@ if isOn("WHN", WHN):
 elif thisMinute in (0, 30): # read files on the tens and prowl/mail if it's been more than 8 hours since a water heater ran
 	stat1, msg1 = timeSince(fr=whnFile, now=now)
 	if stat1 == False:
-		handleException(msg=msg1, logloc=logloc, errorcode=msg1)
+		handleException(msg=msg1, logloc=logloc, errorcode=msg1, short="Long north water heater delay")
 
 # update WHS file
 if isOn("WHS", WHS):
@@ -89,4 +89,4 @@ if isOn("WHS", WHS):
 elif thisMinute in (0, 30): # read files on the tens and prowl/mail if it's been more than 8 hours since a water heater ran
 	stat2, msg2 = timeSince(fr=whsFile, now=now)
 	if stat2 == False:
-		handleException(msg=msg2, logloc=logloc, errorcode=msg2)
+		handleException(msg=msg2, logloc=logloc, errorcode=msg2, short="Long south water heater delay")

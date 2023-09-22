@@ -21,6 +21,11 @@ SendToProwl_CurbFetchError = True
 
 
 # -----------------------
-# Scheduling
+# Scheduling ( how to do this? This is mostly done in crontab )
 # -----------------------
+
+shower5am = True
+WaterHeaterOnTime = 11
+WaterHeaterOffTime = 23
+
 
