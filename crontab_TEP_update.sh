@@ -22,7 +22,7 @@ if [[ -f ${summer} ]] && [[ -f ${winter} ]] && [[ -f ${always} ]]; then
     cat ${always} ${winter} > tmpcron 
   else
     echo "${dt}: ${me} script ran in ${monthW} but is only supposed to run in May and Oct. Exited without doing anything." >> $logfile
-    ${rootdir}/prowl.sh "'ERROR (${me}): Script ran in ${monthW} but is only supposed to run in May and Oct. Exited without doing anything.'" "${me}" > /dev/null
+    ${rootdir}/prowl.sh "'Script ran in ${monthW} but is only supposed to run in May and Oct. Exited without doing anything.'" "${me}" "Crontab update ran in incorrect month" > /dev/null
     exit 9
   fi
 
@@ -32,7 +32,7 @@ if [[ -f ${summer} ]] && [[ -f ${winter} ]] && [[ -f ${always} ]]; then
   echo "${dt}: Crontab update for ${monthW} change in TEP peak hours ran with exit code ${rc}." >> $logfile
 else
   echo "${dt}: Tried to update crontab to reflect ${monthW} change in TEP peak hours, but did not find template file(s)." >> $logfile # log error to log file
-  ${rootdir}/prowl.sh "'ERROR (${me}): Could not update crontab for new TEP peak hours, did not find template file(s).'" "${me}" > /dev/null
+  ${rootdir}/prowl.sh "'Could not update crontab for TEP, did not find template file(s).'" "${me}" "Crontab template files missing" > /dev/null
 fi
 
 rm tmpcron

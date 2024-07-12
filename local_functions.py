@@ -398,7 +398,7 @@ def handleException(inmsg, logloc, errorcode = 0, short = "newshort"):
   from local_functions import logFunc, prowl
 
   if logloc != "":
-    logFunc(logloc=logloc, line="ERROR: " + msg + ". Exiting.") # write to log file
+    logFunc(logloc=logloc, line="ERROR: " + inmsg + ". Exiting.") # write to log file
   prowl(msg="ERROR: Abnormal exit with \'" + inmsg + "\'", short=short) # send to prowl
   sys.exit(errorcode)
 
@@ -467,7 +467,7 @@ def isOn(device_name, device_usage):
   Extended
   """
 
-  thresh = {"HPN": 3000, "HPS": 300, "DRY": 350, "SUB": 4000, "WHN": 500, "WHS": 500}
+  thresh = {"HPN": 2800, "HPS": 300, "DRY": 350, "SUB": 4000, "WHN": 500, "WHS": 500}
   status = int(device_usage > thresh[device_name])
   return status
 

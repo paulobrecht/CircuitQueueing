@@ -16,13 +16,14 @@ MAILTO=pi
 */9   *    * *    *   /home/pi/CurbAPI/ecobeeOverride.sh               # run every 9 minutes (script exits if it's already running)
 
 0    23    * *    *   /home/pi/CurbAPI/flipRelayWH.sh OFF              # off for the night at 11:00 pm
-59   11,23 * *    *   /home/pi/CurbAPI/getAccessToken.sh               # get new Curb token every day at 11:59 am and pm
+59   11,23    * *    *   /home/pi/CurbAPI/getAccessToken.sh               # get new Curb token every night at 11:59 pm
 
 */15  *    * *    *   /home/pi/CurbAPI/curbConnectivityCheck.sh        # Alert if queries to remote Curb server are failing repeatedly
 2,32  *    * *    *   /home/pi/CurbAPI/consumptionNotifications.sh     # Check for conditions one might want to be notified about
 
 
+
 0    15          * *    1-5 /home/pi/CurbAPI/flipRelayWH.sh OFF              # off from 3-7 pm (summer, weekdays)
 
 */1  11-14,19-22 * *    *   /home/pi/CurbAPI/curbLogic.sh                    # every minute from 8 am to 2:58 pm
-*/1  10,15-18    * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too
+*/1  15-18    * *    6-7 /home/pi/CurbAPI/curbLogic.sh                    # no peak auto-off on weekends, so query Sat Sun peak too

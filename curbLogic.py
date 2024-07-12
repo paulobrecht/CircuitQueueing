@@ -134,8 +134,8 @@ for status in [WHN_status, WHS_status]:
 	any_change += change
 
 if any_change:
-	status_add = " WHN:" + l2s(WHN_status) + " WHS:" + l2s(WHS_status)
-	status_message += status_add
+#	status_add = " WHN:" + l2s(WHN_status) + " WHS:" + l2s(WHS_status)
+#	status_message += status_add
 	LF.logFunc(logloc=logloc, line=status_message)
 
 #elif (WHN_status, WHS_status) != ([1, 1], [1, 1]):
