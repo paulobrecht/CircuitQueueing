@@ -370,7 +370,7 @@ def getCaller():
 
 
 
-def prowl(msg, short = "newshort"):
+def prowl(pmsg, short = "newshort"):
   """Send a prowl notification using prowl API
 
   Extended
@@ -381,14 +381,14 @@ def prowl(msg, short = "newshort"):
   import string
 
   caller = getCaller()
-  execList = [os.environ['CURB_DIR'] + "prowl.sh", str("\'" + msg + "\'"), caller, short]
+  execList = [os.environ['CURB_DIR'] + "prowl.sh", str("\'" + pmsg + "\'"), caller, short]
   output = subprocess.run(execList, capture_output = True)
   xmlobj = output.stdout.decode("utf-8")
   return xmlobj
 
 
 
-def handleException(inmsg, logloc, errorcode = 0, short = "newshort"):
+def handleException(msg, logloc, errorcode = 0, short = "newshort"):
   """Generic exception handler (logs error, sends a prowl notification, calls sys.exit())
 
   Extended
@@ -398,8 +398,8 @@ def handleException(inmsg, logloc, errorcode = 0, short = "newshort"):
   from local_functions import logFunc, prowl
 
   if logloc != "":
-    logFunc(logloc=logloc, line="ERROR: " + inmsg + ". Exiting.") # write to log file
-  prowl(msg="ERROR: Abnormal exit with \'" + inmsg + "\'", short=short) # send to prowl
+    logFunc(logloc=logloc, line="ERROR: " + msg + ". Exiting.") # write to log file
+  prowl(pmsg="ERROR: Abnormal exit with \'" + msg + "\'", short=short) # send to prowl
   sys.exit(errorcode)
 
 

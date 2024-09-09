@@ -46,29 +46,29 @@ def notice(msg):
 avgProd = abs(LF.averageProduction(jsonloc=jsonloc, duration=15))
 if avgProd == 0:
 	msg = notice("Average production in the past 15 minutes is exactly 0 W. Is the solar sytem on?")
-	LF.prowl(msg=msg, short="Production is zero.")
+	LF.prowl(pmsg=msg, short="Production is zero.")
 
 # small garage consumption > 200 likely means light is on
 if GRG_SM > 200:
 	msg = notice("Small garage consumption is " + str(GRG_SM) + " W.")
-	LF.prowl(msg=msg, short="Small garage consumption high.")
+	LF.prowl(pmsg=msg, short="Small garage consumption high.")
 
 # consumption is very high
 if CONS > 12000:
 	msg = notice("Overall electricity consumption is " + str(CONS) + " W.")
-	LF.prowl(msg=msg, short="Overall consumption high.")
+	LF.prowl(pmsg=msg, short="Overall consumption high.")
 
 # Pool pump should be running but it's not
 if isPPtime == True and PP < 100:
 	msg = notice("Pool pump should be on between 10 am and 3 pm, but it's not on.")
-	LF.prowl(msg=msg, short="Pool pump off.")
+	LF.prowl(pmsg=msg, short="Pool pump off.")
 
 # Dryer is on
 startTime, minutesOn = LF.firstOnDryerTime(jsonloc)
 if startTime != False: # func returns false if device is not on now
   if minutesOn > 75:
     msg = notice("Dryer has been on since " + startTime + ".")
-    LF.prowl(msg=msg, short="Dryer on for " + str(minutesOn) + " minutes.")
+    LF.prowl(pmsg=msg, short="Dryer on for " + str(minutesOn) + " minutes.")
 
 # if LF.isOn("DRY", DRY):
 # 	msg = notice("Dryer is consuming " + str(DRY) + " W.")
@@ -77,9 +77,9 @@ if startTime != False: # func returns false if device is not on now
 # Master/3rd bedroom use is high
 if MST_3RD > 600:
 	msg = notice("Master/3rd bedroom consumption is " + str(MST_3RD) + " W.")
-	LF.prowl(msg=msg, short="MBR/3rd consumption high.")
+	LF.prowl(pmsg=msg, short="MBR/3rd consumption high.")
 
 # 2 West bedrooms/hall bathroom use is high
 if W2_HB > 500:
 	msg = notice("Two west bedrooms/hall bathroom consumption is " + str(W2_HB) + " W.")
-	LF.prowl(msg=msg, short="2 west BR consumption high.")
+	LF.prowl(pmsg=msg, short="2 west BR consumption high.")

@@ -92,7 +92,7 @@ while True:
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
-					LF.prowl(msg=now + ": postHold() received a non-200 response.", short="non-200 response") # send to prowl
+					LF.prowl(pmsg=now + ": postHold() received a non-200 response.", short="non-200 response") # send to prowl
 					LF.logFunc(logloc=logloc, line=logShortcut(msg=resultAPI[0] + " received a non-200 response from setHold (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem with postHold in ecobeeOverride.py", logloc=logloc, short="postHold problem")
@@ -137,7 +137,7 @@ while True:
 				if resultAPI[3] != 200:
 					resultCode = "BAD"
 					now = time.strftime("%H:%M:%S", time.localtime())
-					LF.prowl(msg=now + ": resumeProgram() received a non-200 response.", short="non-200 response") # send to prowl
+					LF.prowl(pmsg=now + ": resumeProgram() received a non-200 response.", short="non-200 response") # send to prowl
 					LF.logFunc(logloc=logloc, line = logShortcut(msg=resultAPI[0] + " received a non-200 response from resumeProgram (" + str(resultAPI[3]) + ")", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem cancelling hold in ecobeeOverride.py", logloc=logloc, short="Couldn't cancel hold")
