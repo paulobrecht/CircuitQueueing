@@ -3,8 +3,8 @@
 # Provides:          WH_AllOnAtBoot.py
 # Required-Start:    $remote_fs $syslog
 # Required-Stop:     $remote_fs $syslog
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 4 6
 # Short-Description: Run once at boot time to turn on all electrical panel relays
 # Description:       Turns on all electrical panel relays at boot (which are later controlled by cron)
 ### END INIT INFO
@@ -34,3 +34,4 @@ gpio.output(WH_north,1)
 gpio.output(WH_south,0)
 
 logFunc(line = "pi-wh.lan rebooted. Restarting now with (1, 0)")
+
