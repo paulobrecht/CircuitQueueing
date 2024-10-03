@@ -7,7 +7,6 @@ MAILTO=pi
 5     0    1 5,10       * /home/pi/CurbAPI/TEP_crontab_update.sh             # update crontab for TEP summer (5) or winter (10) peak hours
 
 
-*     *          * *    *   /home/pi/CurbAPI/scp_to_ha.sh                    # Send consumption log to home assistant every minute
 *     *          * *    *   /home/pi/CurbAPI/fetchCurbData.sh                # Fetch Curb data every minute every day 24-7, no override
 
 0     0          * *    *   /home/pi/CurbAPI/dailyTidy.sh                    # every day, zip/stash old log and start new

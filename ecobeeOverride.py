@@ -80,6 +80,8 @@ while True:
 			# query thermostats to get necessary data fields
 			try:
 				temps, thermostatTime = LF.queryEcobee(auth_token=ECOBEE_TOKEN)
+				temps[0] += 6
+				temps[1] -= 6 
 #				LF.logFunc(logloc=logloc, line=logShortcut(msg = "ran queryEcobee()", hs = hs))
 			except Exception:
 				LF.handleException(msg="Problem querying ecobee to get temps and time", logloc=logloc, short="Ecobee query fail")

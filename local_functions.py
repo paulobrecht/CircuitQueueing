@@ -454,6 +454,7 @@ def averageProduction(jsonloc, duration = 5):
   summed = 0
   for tup in lastX:
     summed += tup[1]
+
   avgProd = summed/duration
 
   return(avgProd)
